@@ -1,0 +1,4 @@
+/downloader/target
+**/*.rs.bk
+
+/downloads/*

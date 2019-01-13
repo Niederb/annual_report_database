@@ -1,0 +1,12 @@
+[package]
+name = "downloader"
+version = "0.1.0"
+authors = ["Niederb <thomas@niederberger.ch>"]
+edition = "2018"
+
+[dependencies]
+reqwest = "0.9.5"
+csv = "1.0.2"
+serde_derive = "1.0.82"
+serde = "1.0.82"
+clap = "2.32.0"
