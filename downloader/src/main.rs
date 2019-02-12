@@ -5,6 +5,8 @@ use std::fs::File;
 use std::path::Path;
 use clap::{Arg, App};
 
+use log::{info, trace, warn, debug, error};
+
 use serde_derive::Deserialize;
 
 #[derive(Debug,Deserialize)]
@@ -42,10 +44,12 @@ fn download(root_path: &Path, report: &Report) -> Result<(), Box<Error>> {
     fs::create_dir_all(&path)?;
     let fname = path.join(fname);
     if !fname.exists() {
-        println!("will be located under: '{:?}'", fname);
+        debug!("will be located under: '{:?}'", fname);
         let mut dest = File::create(fname)?;
         let mut response = reqwest::get(&report.link)?;
         copy(&mut response, &mut dest)?;
+    } else {
+        debug!("file already exists: '{:?}'", fname);
     }
     Ok(())
 }
@@ -54,13 +58,18 @@ fn iterate_files(root_path: &Path, file: &File) -> Result<(), Box<Error>> {
     let mut rdr = csv::ReaderBuilder::new().delimiter(b';').from_reader(file);
     for result in rdr.deserialize() {
         let report: Report = result?;
-        download(&root_path, &report);
-        println!("{:?}", report);
+        let result = download(&root_path, &report);
+        match result {
+            Ok(_) => trace!("{:?}", report),
+            Err(e) => error!("Error occurred downloading file {}", e),
+        }
     }
     Ok(())
 }
 
 fn main() -> Result<(), Box<Error>> {
+    env_logger::init();
+    
     let matches = App::new("My Super Program")
         .version("1.0")
         .author("Thomas Niederberger <thomas@niederberger.com>")
@@ -75,18 +84,21 @@ fn main() -> Result<(), Box<Error>> {
             .takes_value(true))
         .get_matches();
 
-    let root_path = Path::new(matches.value_of("download-directory").unwrap_or("C:/Repos/Rust/downloader/downloads"));
-    let source_path = Path::new(matches.value_of("source-directory").unwrap_or("C:/Users/Astrid/Dropbox/Actares/Sources"));
-    
+    let root_path = Path::new(matches.value_of("download-directory").unwrap_or("../downloads"));
+    let source_path = Path::new(matches.value_of("source-directory").unwrap_or("../Sources"));
+    println!("Downloading into {:?} from source directory {:?}", root_path, source_path);
     let paths = fs::read_dir(source_path).unwrap();
 
     for source_file in paths {
         let source_file = source_file.unwrap();
-        println!("Processing: {}", source_file.path().display());
-        //let path = source_path.join("Geberit.csv");
+        info!("Processing: {}", source_file.path().display());
         let file = File::open(source_file.path())?;
 
-        iterate_files(&root_path, &file);
+        let result = iterate_files(&root_path, &file);
+        match result {
+            Ok(_) => (),
+            Err(e) => error!("Error deserializing file {:?}", file),
+        }
     }
     Ok(())
 }
