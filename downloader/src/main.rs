@@ -40,9 +40,17 @@ fn download(root_path: &Path, report: &Report) -> Result<(), Box<dyn Error>> {
     let fname = path.join(fname);
     if !fname.exists() {
         debug!("will be located under: '{:?}'", fname);
-        let mut dest = File::create(fname)?;
+        let mut dest = File::create(&fname)?;
         let mut response = reqwest::get(&report.link)?;
-        copy(&mut response, &mut dest)?;
+        if response.status().is_success() {
+            copy(&mut response, &mut dest)?;
+        } else {
+            println!("File {:?} failed.", report.link);
+            if let Some(length) = response.content_length() {
+                println!("Response length {:?}", length);
+            }
+            fs::remove_file(fname);
+        }
     } else {
         debug!("file already exists: '{:?}'", fname);
     }
