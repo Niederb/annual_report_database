@@ -1,7 +1,7 @@
 [package]
-name = "downloader"
+name = "Annual Report Downloader"
 version = "0.1.0"
-authors = ["Niederb <thomas@niederberger.ch>"]
+authors = ["Thomas Niederberger <thomas@niederb.ch>"]
 edition = "2018"
 
 [dependencies]

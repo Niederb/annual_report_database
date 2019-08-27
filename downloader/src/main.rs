@@ -70,10 +70,10 @@ fn iterate_files(root_path: &Path, file: &File) -> Result<(), Box<Error>> {
 fn main() -> Result<(), Box<Error>> {
     env_logger::init();
     
-    let matches = App::new("My Super Program")
-        .version("1.0")
-        .author("Thomas Niederberger <thomas@niederberger.com>")
-        .about("Does awesome things")
+    let matches = App::new("Annual report downloader")
+        .version("0.1")
+        .author("Thomas Niederberger <thomas@niederb.ch>")
+        .about("Download annual reports from the Internet")
         .arg(Arg::with_name("download-directory")
             .short("d")
             .help("Directory into which to download the files")
