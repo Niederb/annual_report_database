@@ -12,13 +12,8 @@ use serde_derive::Deserialize;
 #[derive(Debug,Deserialize)]
 enum CompanyType {
     Smi, // Swiss market index
-    Sli, // Swiss leader index
     SmiMid,
-    Public,
-    Federal,
-    Canton,
-    Cooperative,
-    Infrastructure,
+    Other,
 }
 
 #[derive(Debug,Deserialize)]
@@ -36,7 +31,7 @@ struct Report {
     link: String
 }
 
-fn download(root_path: &Path, report: &Report) -> Result<(), Box<Error>> {
+fn download(root_path: &Path, report: &Report) -> Result<(), Box<dyn Error>> {
     let fname = format!("{}-{}.pdf", report.report_type, report.language);
     
     let path = root_path.join(&report.company);
@@ -54,7 +49,7 @@ fn download(root_path: &Path, report: &Report) -> Result<(), Box<Error>> {
     Ok(())
 }
 
-fn iterate_files(root_path: &Path, file: &File) -> Result<(), Box<Error>> {
+fn iterate_files(root_path: &Path, file: &File) -> Result<(), Box<dyn Error>> {
     let mut rdr = csv::ReaderBuilder::new().delimiter(b';').from_reader(file);
     for result in rdr.deserialize() {
         let report: Report = result?;
@@ -67,7 +62,7 @@ fn iterate_files(root_path: &Path, file: &File) -> Result<(), Box<Error>> {
     Ok(())
 }
 
-fn main() -> Result<(), Box<Error>> {
+fn main() -> Result<(), Box<dyn Error>> {
     env_logger::init();
     
     let matches = App::new("Annual report downloader")
