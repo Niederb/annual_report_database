@@ -1,39 +1,39 @@
+use clap::{App, Arg};
 use std::error::Error;
-use std::io::copy;
 use std::fs;
 use std::fs::File;
+use std::io::copy;
 use std::path::Path;
-use clap::{Arg, App};
 
-use log::{info, trace, warn, debug, error};
+use log::{debug, error, info, trace, warn};
 
 use serde_derive::Deserialize;
 
-#[derive(Debug,Deserialize)]
+#[derive(Debug, Deserialize)]
 enum CompanyType {
     Smi, // Swiss market index
     SmiMid,
     Other,
 }
 
-#[derive(Debug,Deserialize)]
+#[derive(Debug, Deserialize)]
 struct Company {
     company: String,
     company_type: CompanyType,
 }
 
-#[derive(Debug,Deserialize)]
+#[derive(Debug, Deserialize)]
 struct Report {
     company: String,
     language: String,
     report_type: String,
     year: u16,
-    link: String
+    link: String,
 }
 
 fn download(root_path: &Path, report: &Report) -> Result<(), Box<dyn Error>> {
     let fname = format!("{}-{}.pdf", report.report_type, report.language);
-    
+
     let path = root_path.join(&report.company);
     let path = path.join(&report.year.to_string());
     fs::create_dir_all(&path)?;
@@ -64,24 +64,35 @@ fn iterate_files(root_path: &Path, file: &File) -> Result<(), Box<dyn Error>> {
 
 fn main() -> Result<(), Box<dyn Error>> {
     env_logger::init();
-    
+
     let matches = App::new("Annual report downloader")
         .version("0.1")
         .author("Thomas Niederberger <thomas@niederb.ch>")
         .about("Download annual reports from the Internet")
-        .arg(Arg::with_name("download-directory")
-            .short("d")
-            .help("Directory into which to download the files")
-            .takes_value(true))
-        .arg(Arg::with_name("source-directory")
-            .short("s")
-            .help("Directory that contains the data sources")
-            .takes_value(true))
+        .arg(
+            Arg::with_name("download-directory")
+                .short("d")
+                .help("Directory into which to download the files")
+                .takes_value(true),
+        )
+        .arg(
+            Arg::with_name("source-directory")
+                .short("s")
+                .help("Directory that contains the data sources")
+                .takes_value(true),
+        )
         .get_matches();
 
-    let root_path = Path::new(matches.value_of("download-directory").unwrap_or("../downloads"));
+    let root_path = Path::new(
+        matches
+            .value_of("download-directory")
+            .unwrap_or("../downloads"),
+    );
     let source_path = Path::new(matches.value_of("source-directory").unwrap_or("../Sources"));
-    println!("Downloading into {:?} from source directory {:?}", root_path, source_path);
+    println!(
+        "Downloading into {:?} from source directory {:?}",
+        root_path, source_path
+    );
     let paths = fs::read_dir(source_path).unwrap();
 
     for source_file in paths {
