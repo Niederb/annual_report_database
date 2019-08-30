@@ -1,3 +1,4 @@
+use chrono::{Datelike, Timelike, Utc};
 use clap::{App, Arg};
 use std::error::Error;
 use std::fs;
@@ -36,10 +37,12 @@ fn download(root_path: &Path, report: &Report) -> Result<(), Box<dyn Error>> {
 
     let path = root_path.join(&report.company);
     let path = path.join(&report.year.to_string());
+    println!("{:?}", path.to_str());
     fs::create_dir_all(&path)?;
     let fname = path.join(fname);
-    if !fname.exists() {
-        debug!("will be located under: '{:?}'", fname);
+    let file_exists = fname.exists();
+    if !file_exists {
+        println!("will be located under: '{:?}'", fname);
         let mut dest = File::create(&fname)?;
         let mut response = reqwest::get(&report.link)?;
         if response.status().is_success() {
@@ -59,11 +62,14 @@ fn download(root_path: &Path, report: &Report) -> Result<(), Box<dyn Error>> {
 
 fn iterate_files(root_path: &Path, file: &File) -> Result<(), Box<dyn Error>> {
     let mut rdr = csv::ReaderBuilder::new().delimiter(b';').from_reader(file);
+
     for result in rdr.deserialize() {
         let report: Report = result?;
         let result = download(&root_path, &report);
         match result {
-            Ok(_) => trace!("{:?}", report),
+            Ok(_) => {
+                trace!("{:?}", report);
+            }
             Err(e) => error!("Error occurred downloading file {}", e),
         }
     }
@@ -91,11 +97,14 @@ fn main() -> Result<(), Box<dyn Error>> {
         )
         .get_matches();
 
-    let root_path = Path::new(
-        matches
-            .value_of("download-directory")
-            .unwrap_or("../downloads"),
-    );
+    let now = Utc::now();
+    let date = format!("{}-{:02}-{:02}", now.year(), now.month(), now.day());
+    let root_downloads = matches
+        .value_of("download-directory")
+        .unwrap_or("../downloads");
+    let download_directory = format!("{}/{}", root_downloads, date);
+    let root_path = Path::new(&download_directory);
+    fs::create_dir_all(root_path);
     let source_path = Path::new(matches.value_of("source-directory").unwrap_or("../Sources"));
     println!(
         "Downloading into {:?} from source directory {:?}",
@@ -105,7 +114,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     for source_file in paths {
         let source_file = source_file.unwrap();
-        info!("Processing: {}", source_file.path().display());
+        println!("Processing: {}", source_file.path().display());
         let file = File::open(source_file.path())?;
 
         let result = iterate_files(&root_path, &file);
