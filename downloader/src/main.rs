@@ -6,6 +6,7 @@ use std::fs::File;
 use std::io::copy;
 use std::path::Path;
 
+use simplelog::*;
 use log::{debug, error, info, trace, warn};
 
 use serde_derive::Deserialize;
@@ -37,20 +38,20 @@ fn download(root_path: &Path, report: &Report) -> Result<(), Box<dyn Error>> {
 
     let path = root_path.join(&report.company);
     let path = path.join(&report.year.to_string());
-    println!("{:?}", path.to_str());
+    info!("{:?}", path.to_str());
     fs::create_dir_all(&path)?;
     let fname = path.join(fname);
     let file_exists = fname.exists();
     if !file_exists {
-        println!("will be located under: '{:?}'", fname);
+        info!("will be located under: '{:?}'", fname);
         let mut dest = File::create(&fname)?;
         let mut response = reqwest::get(&report.link)?;
         if response.status().is_success() {
             copy(&mut response, &mut dest)?;
         } else {
-            println!("File {:?} failed.", report.link);
+            error!("File {:?} failed.", report.link);
             if let Some(length) = response.content_length() {
-                println!("Response length {:?}", length);
+                error!("Response length {:?}", length);
             }
             fs::remove_file(fname);
         }
@@ -77,7 +78,7 @@ fn iterate_files(root_path: &Path, file: &File) -> Result<(), Box<dyn Error>> {
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
-    env_logger::init();
+    //env_logger::init();
 
     let matches = App::new("Annual report downloader")
         .version("0.1")
@@ -103,9 +104,18 @@ fn main() -> Result<(), Box<dyn Error>> {
         .value_of("download-directory")
         .unwrap_or("../downloads");
     let download_directory = format!("{}/{}", root_downloads, date);
+    let log_file = format!("{}/output.txt", download_directory);
     let root_path = Path::new(&download_directory);
     fs::create_dir_all(root_path);
     let source_path = Path::new(matches.value_of("source-directory").unwrap_or("../Sources"));
+
+    CombinedLogger::init(
+        vec![
+            TermLogger::new(LevelFilter::Warn, Config::default(), TerminalMode::Mixed).unwrap(),
+            WriteLogger::new(LevelFilter::Error, Config::default(), File::create(log_file).unwrap()),
+        ]
+    ).unwrap();
+
     println!(
         "Downloading into {:?} from source directory {:?}",
         root_path, source_path
