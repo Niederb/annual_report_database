@@ -1,7 +1,12 @@
 # AnnualReportDatabase
-A database of annual reports of Swiss companies. I believe it is important that these documents are available for the public in an easy manner such that they can be scrutinized. The more people are watching
+A database of annual reports of Swiss companies. I believe it is important that these documents are available for the public in an easy manner such that they can be scrutinized. The more people that are keeping an eye on big companies the better and the easier it is to hold them accountable for their actions. To my knowledge there is no systematic collection of these documents that is available to the public. 
 
-Currently I collect the reports as list of links in csv files. There is also a small download software that can be used to download the whole collection in a systematic way. 
+My vision is to have a complete and extensive database of reports for all major companies in Switzerland. The database should then allow for different use cases such as:
+* Investigating the history of a specific company
+* Run statistical analysis
+
+
+Currently I collect the reports as list of links in csv files. The document are categorized by company, type, language and year. There is also a small software that can be used to download the whole collection in a systematic way. 
 
 # What companies?
 * Big companies located in Switzerland
@@ -9,11 +14,12 @@ Currently I collect the reports as list of links in csv files. There is also a s
 ** All companies in the SMI and SMI MID index
 ** Companies responsible for major infrastructure (transportation, financial, power, ...)
 ** Companies that are (partially) owned by the public
+* Big companies with different other legal forms are not a focus but could also be interesting
 
 # What documents
 ## What I'm collecting
 * Full year reports
-** Annual, financial, governance, sustainability...
+  * Annual, financial, governance, sustainability...
 * Languages: Official languages of Switzerland and English
 
 ## Currently not collecting but would be interesting
