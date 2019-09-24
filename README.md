@@ -35,11 +35,27 @@ Currently I collect the reports as list of links in csv files. The document are 
 * Redundant information (for example complete report and separate chapters of the report)
 
 ## Known issues
-* UBS has moved many reports
+* The UBS report for 2017 is corrupted
 * Sika has moved many reports
 * Zurich makes you accept a disclaimer before downloading so automatic download fails for some files
 * The Roche reports for 2008 are currently not available anymore
 * Swiss RE makes you accept a disclaimer before downloading so automatic download fails for the 2014 report
+
+## Missing companies
+* SMI
+  * Nestle
+  * ABB
+* SMI MID
+  * Barry Callebaut
+  * BB Biotech
+  * Bucher Industries
+  * Clariant
+  * Lindt & Sprüngli
+  * Logitech
+  * Sunrise
+  * Swiss Prime Site
+  * VAT Group AG
+  * Vifor Pharma
 
 # TODO for the downloader
 * Sometimes a download can fail
