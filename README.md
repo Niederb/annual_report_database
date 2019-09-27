@@ -20,11 +20,12 @@ Currently I collect the reports as list of links in csv files. The document are 
 ## What I'm collecting
 * Full year reports
   * Annual, financial, governance, sustainability...
-* Languages: Official languages of Switzerland and English
+* Languages: Official languages of Switzerland plus English
 
 ## Currently not collecting but would be interesting
 * Minutes from annual meetings
 * Raw data in the form of Excel sheets or similar
+* Filings to the IRS (internal revenue service)
 
 ## What I'm not collecting
 * No half year or quaterly reports
@@ -36,15 +37,11 @@ Currently I collect the reports as list of links in csv files. The document are 
 
 ## Known issues
 * The UBS report for 2017 is corrupted
-* Sika has moved many reports
 * Zurich makes you accept a disclaimer before downloading so automatic download fails for some files
 * The Roche reports for 2008 are currently not available anymore
 * Swiss RE makes you accept a disclaimer before downloading so automatic download fails for the 2014 report
 
 ## Missing companies
-* SMI
-  * Nestle
-  * ABB
 * SMI MID
   * Barry Callebaut
   * BB Biotech
