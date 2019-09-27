@@ -59,3 +59,4 @@ Currently I collect the reports as list of links in csv files. The document are 
 * Proper support to check if the download resulted in a valid pdf
 * Compare the newly downloaded pdf to an existing one
 * Parallelize the downloads
+* Download only specific companies or years
