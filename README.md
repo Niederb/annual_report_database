@@ -40,17 +40,15 @@ Currently I collect the reports as list of links in csv files. The document are 
 * Zurich makes you accept a disclaimer before downloading so automatic download fails for some files
 * The Roche reports for 2008 are currently not available anymore
 * Swiss RE makes you accept a disclaimer before downloading so automatic download fails for the 2014 report
+* BB Biotech also forces you to accept a disclaimer
 
 ## Missing companies
 * SMI MID
-  * Barry Callebaut
   * BB Biotech
-  * Bucher Industries
   * Clariant
   * Lindt & Sprüngli
   * Logitech
   * Sunrise
-  * Swiss Prime Site
   * VAT Group AG
   * Vifor Pharma
 
