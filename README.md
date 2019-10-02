@@ -46,10 +46,8 @@ Currently I collect the reports as list of links in csv files. The document are 
 * SMI MID
   * BB Biotech
   * Clariant
-  * Lindt & Sprüngli
   * Logitech
   * Sunrise
-  * VAT Group AG
   * Vifor Pharma
 
 # TODO for the downloader
