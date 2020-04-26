@@ -47,7 +47,7 @@ fn download(root_path: &Path, report: &Report) -> Result<(), Box<dyn Error>> {
     if !file_exists {
         info!("will be located under: '{:?}'", fname);
         let mut dest = File::create(&fname)?;
-        let mut response = reqwest::get(&report.link)?;
+        let mut response = reqwest::blocking::get(&report.link)?;
         if response.status().is_success() {
             copy(&mut response, &mut dest)?;
         } else {
