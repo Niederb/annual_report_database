@@ -1,4 +1,6 @@
 use chrono::{Datelike, Timelike, Utc};
+#[macro_use]
+extern crate clap;
 use clap::{App, Arg};
 use std::error::Error;
 use std::fs;
@@ -6,8 +8,8 @@ use std::fs::File;
 use std::io::copy;
 use std::path::Path;
 
-use simplelog::*;
 use log::{debug, error, info, trace, warn};
+use simplelog::*;
 
 use serde_derive::Deserialize;
 
@@ -57,6 +59,15 @@ fn download(root_path: &Path, report: &Report) -> Result<(), Box<dyn Error>> {
         }
     } else {
         debug!("file already exists: '{:?}'", fname);
+        //println!("Try to  open file {:?}", fname);
+        /*let mut open_result = Document::load(&fname);
+        if let Err(error) = open_result {
+            error!("Could not open file {:?}", fname);
+        } else if let Ok(document) = open_result {
+            let pages = document.get_pages();
+
+            println!("{:?}", pages.len());
+        }*/
     }
     Ok(())
 }
@@ -81,8 +92,8 @@ fn main() -> Result<(), Box<dyn Error>> {
     //env_logger::init();
 
     let matches = App::new("Annual report downloader")
-        .version("0.1")
-        .author("Thomas Niederberger <thomas@niederb.ch>")
+        .version(crate_version!())
+        .author(crate_authors!())
         .about("Download annual reports from the Internet")
         .arg(
             Arg::with_name("download-directory")
@@ -109,12 +120,15 @@ fn main() -> Result<(), Box<dyn Error>> {
     fs::create_dir_all(root_path);
     let source_path = Path::new(matches.value_of("source-directory").unwrap_or("../Sources"));
 
-    CombinedLogger::init(
-        vec![
-            TermLogger::new(LevelFilter::Warn, Config::default(), TerminalMode::Mixed).unwrap(),
-            WriteLogger::new(LevelFilter::Error, Config::default(), File::create(log_file).unwrap()),
-        ]
-    ).unwrap();
+    CombinedLogger::init(vec![
+        TermLogger::new(LevelFilter::Warn, Config::default(), TerminalMode::Mixed).unwrap(),
+        WriteLogger::new(
+            LevelFilter::Error,
+            Config::default(),
+            File::create(log_file).unwrap(),
+        ),
+    ])
+    .unwrap();
 
     println!(
         "Downloading into {:?} from source directory {:?}",
