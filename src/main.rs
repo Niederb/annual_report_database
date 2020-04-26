@@ -113,12 +113,12 @@ fn main() -> Result<(), Box<dyn Error>> {
     let date = format!("{}-{:02}-{:02}", now.year(), now.month(), now.day());
     let root_downloads = matches
         .value_of("download-directory")
-        .unwrap_or("../downloads");
+        .unwrap_or("downloads");
     let download_directory = format!("{}/{}", root_downloads, date);
     let log_file = format!("{}/output.txt", download_directory);
     let root_path = Path::new(&download_directory);
     fs::create_dir_all(root_path);
-    let source_path = Path::new(matches.value_of("source-directory").unwrap_or("../Sources"));
+    let source_path = Path::new(matches.value_of("source-directory").unwrap_or("Sources"));
 
     CombinedLogger::init(vec![
         TermLogger::new(LevelFilter::Warn, Config::default(), TerminalMode::Mixed).unwrap(),
