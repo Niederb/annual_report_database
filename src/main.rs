@@ -6,7 +6,8 @@ use std::error::Error;
 use std::fs;
 use std::fs::File;
 use std::io::copy;
-use std::path::Path;
+use std::path::{Path, PathBuf};
+use tokio::prelude::*;
 
 use log::{debug, error, info, trace, warn};
 use simplelog::*;
@@ -35,30 +36,37 @@ struct Report {
     link: String,
 }
 
-fn download(root_path: &Path, report: &Report) -> Result<(), Box<dyn Error>> {
-    let fname = format!("{}-{}.pdf", report.report_type, report.language);
+async fn download(root_path: &Path, report: Report) -> Result<(), Box<dyn Error>> {
+    let file_name = format!("{}-{}.pdf", report.report_type, report.language);
+    println!("{}", file_name);
 
     let path = root_path.join(&report.company);
     let path = path.join(&report.year.to_string());
     info!("{:?}", path.to_str());
     fs::create_dir_all(&path)?;
-    let fname = path.join(fname);
-    let file_exists = fname.exists();
+    let file_path = path.join(file_name);
+    let file_exists = file_path.exists();
     if !file_exists {
-        info!("will be located under: '{:?}'", fname);
-        let mut dest = File::create(&fname)?;
-        let mut response = reqwest::blocking::get(&report.link)?;
-        if response.status().is_success() {
-            copy(&mut response, &mut dest)?;
+        println!("will be located under: '{:?}'", file_path);
+
+        let mut response = reqwest::get(&report.link).await?;
+
+        let mut file = tokio::fs::OpenOptions::new().write(true)
+            .create(true).open(file_path).await?;
+        while let Some(chunk) = response.chunk().await? {
+            file.write_all(&chunk).await?;
+        }
+        /*if response.status().is_success() {
+            copy(&mut text, &mut dest)?;
         } else {
             error!("File {:?} failed.", report.link);
             if let Some(length) = response.content_length() {
                 error!("Response length {:?}", length);
             }
             fs::remove_file(fname);
-        }
+        }*/
     } else {
-        debug!("file already exists: '{:?}'", fname);
+        debug!("file already exists: '{:?}'", file_path);
         //println!("Try to  open file {:?}", fname);
         /*let mut open_result = Document::load(&fname);
         if let Err(error) = open_result {
@@ -72,15 +80,21 @@ fn download(root_path: &Path, report: &Report) -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-fn iterate_files(root_path: &Path, file: &File) -> Result<(), Box<dyn Error>> {
+async fn iterate_files(root_path: PathBuf, file: &File) -> Result<(), Box<dyn Error>> {
     let mut rdr = csv::ReaderBuilder::new().delimiter(b';').from_reader(file);
+    let mut future_list = Vec::new();
 
     for result in rdr.deserialize() {
         let report: Report = result?;
-        let result = download(&root_path, &report);
+        println!("Processing: {}", report.year);
+        let result = download(&root_path, report);
+        future_list.push(result);
+    }
+    for future in future_list {
+        let result = future.await;
         match result {
             Ok(_) => {
-                trace!("{:?}", report);
+                //trace!("{:?}", report);
             }
             Err(e) => error!("Error occurred downloading file {}", e),
         }
@@ -88,7 +102,8 @@ fn iterate_files(root_path: &Path, file: &File) -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-fn main() -> Result<(), Box<dyn Error>> {
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn Error>> {
     //env_logger::init();
 
     let matches = App::new("Annual report downloader")
@@ -116,8 +131,8 @@ fn main() -> Result<(), Box<dyn Error>> {
         .unwrap_or("downloads");
     let download_directory = format!("{}/{}", root_downloads, date);
     let log_file = format!("{}/output.txt", download_directory);
-    let root_path = Path::new(&download_directory);
-    fs::create_dir_all(root_path);
+    let root_path = PathBuf::from(&download_directory);
+    fs::create_dir_all(&root_path);
     let source_path = Path::new(matches.value_of("source-directory").unwrap_or("Sources"));
 
     CombinedLogger::init(vec![
@@ -136,16 +151,24 @@ fn main() -> Result<(), Box<dyn Error>> {
     );
     let paths = fs::read_dir(source_path).unwrap();
 
+    let mut join_handles = Vec::new();
     for source_file in paths {
-        let source_file = source_file.unwrap();
-        println!("Processing: {}", source_file.path().display());
-        let file = File::open(source_file.path())?;
-
-        let result = iterate_files(&root_path, &file);
-        match result {
-            Ok(_) => (),
-            Err(e) => error!("Error deserializing file {:?}", file),
-        }
+        let my_root_path = root_path.clone();
+        let join_handle = tokio::spawn(async move {
+            let source_file = source_file.unwrap();
+            println!("Processing: {}", source_file.path().display());
+            let file = File::open(source_file.path()).unwrap();
+            let path = PathBuf::from(&my_root_path);
+            let result = iterate_files(path, &file).await;
+            match result {
+                Ok(_) => (),
+                Err(e) => error!("Error deserializing file {:?}", file),
+            }
+        });
+        join_handles.push(join_handle);
+    };
+    for join_handle in join_handles {
+        join_handle.await;
     }
     Ok(())
 }
