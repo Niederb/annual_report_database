@@ -1,11 +1,10 @@
-use chrono::{Datelike, Timelike, Utc};
+use chrono::{Datelike, Utc};
 #[macro_use]
 extern crate clap;
 use clap::{App, Arg};
 use std::error::Error;
 use std::fs;
 use std::fs::File;
-use std::io::copy;
 use std::path::{Path, PathBuf};
 use tokio::prelude::*;
 
@@ -38,7 +37,6 @@ struct Report {
 
 async fn download(root_path: &Path, report: Report) -> Result<(), Box<dyn Error>> {
     let file_name = format!("{}-{}.pdf", report.report_type, report.language);
-    println!("{}", file_name);
 
     let path = root_path.join(&report.company);
     let path = path.join(&report.year.to_string());
@@ -47,24 +45,27 @@ async fn download(root_path: &Path, report: Report) -> Result<(), Box<dyn Error>
     let file_path = path.join(file_name);
     let file_exists = file_path.exists();
     if !file_exists {
-        println!("will be located under: '{:?}'", file_path);
+        info!("Processing path: '{:?}'", file_path);
 
         let mut response = reqwest::get(&report.link).await?;
 
-        let mut file = tokio::fs::OpenOptions::new().write(true)
-            .create(true).open(file_path).await?;
+        let mut file = tokio::fs::OpenOptions::new()
+            .write(true)
+            .create(true)
+            .open(file_path)
+            .await?;
         while let Some(chunk) = response.chunk().await? {
             file.write_all(&chunk).await?;
         }
-        /*if response.status().is_success() {
-            copy(&mut text, &mut dest)?;
-        } else {
-            error!("File {:?} failed.", report.link);
-            if let Some(length) = response.content_length() {
-                error!("Response length {:?}", length);
-            }
-            fs::remove_file(fname);
-        }*/
+    /*if response.status().is_success() {
+        copy(&mut text, &mut dest)?;
+    } else {
+        error!("File {:?} failed.", report.link);
+        if let Some(length) = response.content_length() {
+            error!("Response length {:?}", length);
+        }
+        fs::remove_file(fname);
+    }*/
     } else {
         debug!("file already exists: '{:?}'", file_path);
         //println!("Try to  open file {:?}", fname);
@@ -86,7 +87,6 @@ async fn iterate_files(root_path: PathBuf, file: &File) -> Result<(), Box<dyn Er
 
     for result in rdr.deserialize() {
         let report: Report = result?;
-        println!("Processing: {}", report.year);
         let result = download(&root_path, report);
         future_list.push(result);
     }
@@ -136,7 +136,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let source_path = Path::new(matches.value_of("source-directory").unwrap_or("Sources"));
 
     CombinedLogger::init(vec![
-        TermLogger::new(LevelFilter::Warn, Config::default(), TerminalMode::Mixed).unwrap(),
+        TermLogger::new(LevelFilter::Info, Config::default(), TerminalMode::Mixed).unwrap(),
         WriteLogger::new(
             LevelFilter::Error,
             Config::default(),
@@ -166,7 +166,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
             }
         });
         join_handles.push(join_handle);
-    };
+    }
     for join_handle in join_handles {
         join_handle.await;
     }

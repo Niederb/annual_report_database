@@ -1,5 +1,5 @@
 [package]
-name = "annual_report_downloader"
+name = "annual_report_database"
 version = "0.1.0"
 authors = ["Thomas Niederberger <thomas@niederb.ch>"]
 edition = "2018"
