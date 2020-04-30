@@ -40,7 +40,6 @@ async fn download(root_path: &Path, report: Report) -> Result<(), Box<dyn Error>
 
     let path = root_path.join(&report.company);
     let path = path.join(&report.year.to_string());
-    info!("{:?}", path.to_str());
     fs::create_dir_all(&path)?;
     let file_path = path.join(file_name);
     let file_exists = file_path.exists();
