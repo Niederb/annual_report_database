@@ -16,10 +16,8 @@ use serde_derive::Deserialize;
 
 use walkdir::WalkDir;
 
-#[macro_use]
-extern crate horrorshow;
+use horrorshow::html;
 use horrorshow::helper::doctype;
-use horrorshow::prelude::*;
 
 #[derive(Debug, Deserialize)]
 enum CompanyType {
