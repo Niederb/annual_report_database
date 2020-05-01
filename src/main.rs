@@ -1,5 +1,6 @@
 use chrono::{Datelike, Utc};
-use clap::{App, Arg, crate_version, crate_authors};
+use structopt::StructOpt;
+
 use std::error::Error;
 use std::fs;
 use std::fs::File;
@@ -16,6 +17,16 @@ use walkdir::WalkDir;
 
 use horrorshow::helper::doctype;
 use horrorshow::html;
+
+#[derive(StructOpt, Debug)]
+#[structopt(author, about)]
+struct Configuration {
+    #[structopt(short, long, default_value = "downloads/")]
+    source_directory: String,
+
+    #[structopt(short, long, default_value = "Sources/")]
+    download_directory: String,
+}
 
 #[derive(Debug, Deserialize)]
 enum Language {
@@ -135,34 +146,16 @@ async fn iterate_files(root_path: PathBuf, file: &File) -> Result<Company, Box<d
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
-    let matches = App::new("Annual report downloader")
-        .version(crate_version!())
-        .author(crate_authors!())
-        .about("Download annual reports from the Internet")
-        .arg(
-            Arg::with_name("download-directory")
-                .short("d")
-                .help("Directory into which to download the files")
-                .takes_value(true),
-        )
-        .arg(
-            Arg::with_name("source-directory")
-                .short("s")
-                .help("Directory that contains the data sources")
-                .takes_value(true),
-        )
-        .get_matches();
+    let c = Configuration::from_args();
 
     let now = Utc::now();
     let date = format!("{}-{:02}-{:02}", now.year(), now.month(), now.day());
-    let root_downloads = matches
-        .value_of("download-directory")
-        .unwrap_or("downloads");
-    let download_directory = format!("{}/{}", root_downloads, date);
+
+    let download_directory = format!("{}/{}", c.download_directory, date);
     let log_file = format!("{}/output.txt", download_directory);
     let root_path = PathBuf::from(&download_directory);
     fs::create_dir_all(&root_path).unwrap();
-    let source_path = Path::new(matches.value_of("source-directory").unwrap_or("Sources"));
+    let source_path = Path::new(&c.source_directory);
 
     CombinedLogger::init(vec![
         TermLogger::new(LevelFilter::Info, Config::default(), TerminalMode::Mixed).unwrap(),
