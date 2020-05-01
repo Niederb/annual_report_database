@@ -9,15 +9,15 @@ use std::io::Write;
 use std::path::{Path, PathBuf};
 use tokio::prelude::*;
 
-use log::{debug, error, info, trace, warn};
+use log::{debug, error, info};
 use simplelog::*;
 
 use serde_derive::Deserialize;
 
 use walkdir::WalkDir;
 
-use horrorshow::html;
 use horrorshow::helper::doctype;
+use horrorshow::html;
 
 #[derive(Debug, Deserialize)]
 enum Language {
@@ -43,8 +43,15 @@ impl Company {
             String::new()
         };
         let newest_year = reports.iter().fold(0, |acc, x| std::cmp::max(acc, x.year));
-        let oldest_year = reports.iter().fold(u16::MAX, |acc, x| std::cmp::min(acc, x.year));
-        Company { name, reports, oldest_year, newest_year }
+        let oldest_year = reports
+            .iter()
+            .fold(u16::MAX, |acc, x| std::cmp::min(acc, x.year));
+        Company {
+            name,
+            reports,
+            oldest_year,
+            newest_year,
+        }
     }
 }
 
@@ -57,7 +64,10 @@ struct Report {
     link: String,
 }
 
-pub fn create_file_list(path: &str, filetype_filter_function: &dyn Fn(&str) -> bool) -> Vec<PathBuf> {
+pub fn create_file_list(
+    path: &str,
+    filetype_filter_function: &dyn Fn(&str) -> bool,
+) -> Vec<PathBuf> {
     let mut file_list = Vec::new();
     let walker = WalkDir::new(path).into_iter();
 
@@ -173,7 +183,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let download_directory = format!("{}/{}", root_downloads, date);
     let log_file = format!("{}/output.txt", download_directory);
     let root_path = PathBuf::from(&download_directory);
-    fs::create_dir_all(&root_path);
+    fs::create_dir_all(&root_path).unwrap();
     let source_path = Path::new(matches.value_of("source-directory").unwrap_or("Sources"));
 
     CombinedLogger::init(vec![
@@ -203,7 +213,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
             let result = iterate_files(path, &file).await;
             match result {
                 Ok(reports) => Some(reports),
-                Err(e) => {
+                Err(_e) => {
                     error!("Error deserializing file {:?}", file);
                     None
                 }
@@ -219,7 +229,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
                 company.reports.sort_by(|a, b| b.year.cmp(&a.year));
                 //create_company_report(&company)
                 companies.push(company);
-            },
+            }
             None => println!("Error"),
         }
     }
@@ -258,7 +268,7 @@ fn create_index(companies: &Vec<Company>) {
                             }
                             th {
                                 : "Data range"
-                            }                            
+                            }
                         }
                         @ for company in companies {
                             tr {
@@ -286,7 +296,7 @@ fn create_index(companies: &Vec<Company>) {
 
 fn create_company_report(company: &Company) {
     let reports = &company.reports;
-    
+
     let company = &reports[0].company;
     let target = "_blank";
 
