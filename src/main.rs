@@ -1,7 +1,5 @@
 use chrono::{Datelike, Utc};
-#[macro_use]
-extern crate clap;
-use clap::{App, Arg};
+use clap::{App, Arg, crate_version, crate_authors};
 use std::error::Error;
 use std::fs;
 use std::fs::File;
@@ -105,26 +103,8 @@ async fn download(root_path: &Path, report: Report) -> Result<(), Box<dyn Error>
         while let Some(chunk) = response.chunk().await? {
             file.write_all(&chunk).await?;
         }
-    /*if response.status().is_success() {
-        copy(&mut text, &mut dest)?;
-    } else {
-        error!("File {:?} failed.", report.link);
-        if let Some(length) = response.content_length() {
-            error!("Response length {:?}", length);
-        }
-        fs::remove_file(fname);
-    }*/
     } else {
         debug!("file already exists: '{:?}'", file_path);
-        //println!("Try to  open file {:?}", fname);
-        /*let mut open_result = Document::load(&fname);
-        if let Err(error) = open_result {
-            error!("Could not open file {:?}", fname);
-        } else if let Ok(document) = open_result {
-            let pages = document.get_pages();
-
-            println!("{:?}", pages.len());
-        }*/
     }
     Ok(())
 }
@@ -155,8 +135,6 @@ async fn iterate_files(root_path: PathBuf, file: &File) -> Result<Company, Box<d
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
-    //env_logger::init();
-
     let matches = App::new("Annual report downloader")
         .version(crate_version!())
         .author(crate_authors!())
