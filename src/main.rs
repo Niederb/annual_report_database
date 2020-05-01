@@ -31,6 +31,21 @@ enum Language {
 struct Company {
     name: String,
     reports: Vec<Report>,
+    oldest_year: u16,
+    newest_year: u16,
+}
+
+impl Company {
+    fn new(reports: Vec<Report>) -> Company {
+        let name = if reports.len() > 0 {
+            reports[0].company.to_owned()
+        } else {
+            String::new()
+        };
+        let newest_year = reports.iter().fold(0, |acc, x| std::cmp::max(acc, x.year));
+        let oldest_year = reports.iter().fold(u16::MAX, |acc, x| std::cmp::min(acc, x.year));
+        Company { name, reports, oldest_year, newest_year }
+    }
 }
 
 #[derive(Debug, Deserialize, Clone)]
@@ -108,11 +123,9 @@ async fn iterate_files(root_path: PathBuf, file: &File) -> Result<Company, Box<d
     let mut rdr = csv::ReaderBuilder::new().delimiter(b';').from_reader(file);
     let mut future_list = Vec::new();
     let mut reports = Vec::new();
-    let mut company_name = String::new();
 
     for result in rdr.deserialize() {
         let report: Report = result?;
-        company_name = report.company.clone();
         let result = download(&root_path, report.clone());
         future_list.push((report, result));
     }
@@ -126,7 +139,7 @@ async fn iterate_files(root_path: PathBuf, file: &File) -> Result<Company, Box<d
             Err(e) => error!("Error occurred downloading file {}", e),
         }
     }
-    let company = Company { name: company_name, reports};
+    let company = Company::new(reports);
     Ok(company)
 }
 
@@ -243,6 +256,9 @@ fn create_index(companies: &Vec<Company>) {
                             th {
                                 : "Number documents"
                             }
+                            th {
+                                : "Data range"
+                            }                            
                         }
                         @ for company in companies {
                             tr {
@@ -253,6 +269,9 @@ fn create_index(companies: &Vec<Company>) {
                                 }
                                 td {
                                     : &company.reports.len()
+                                }
+                                td {
+                                    : format_args!("{}-{}", &company.oldest_year, &company.newest_year)
                                 }
                             }
                         }
