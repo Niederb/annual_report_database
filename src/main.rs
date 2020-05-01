@@ -6,6 +6,7 @@ use std::error::Error;
 use std::fs;
 use std::fs::File;
 use std::path::{Path, PathBuf};
+use std::io::Write;
 use tokio::prelude::*;
 
 use log::{debug, error, info, trace, warn};
@@ -14,6 +15,11 @@ use simplelog::*;
 use serde_derive::Deserialize;
 
 use walkdir::WalkDir;
+
+#[macro_use]
+extern crate horrorshow;
+use horrorshow::helper::doctype;
+use horrorshow::prelude::*;
 
 #[derive(Debug, Deserialize)]
 enum CompanyType {
@@ -219,7 +225,62 @@ async fn main() -> Result<(), Box<dyn Error>> {
 }
 
 fn print_reports(reports: &Vec<Report>) {
-    for report in reports {
+    let company = &reports[0].company;
+    let target = "_blank";
+    //println!("{} {}", , reports.len());
+    let index_content = format!(
+        "{}",
+        html! {
+            : doctype::HTML;
+            html {
+                head {
+                    title : company
+                }
+                body {
+                    h1 {
+                        : company
+                    }
+                    table {
+                        tr {
+                            th {
+                                : "Year"
+                            }
+                            th {
+                                : "Type"
+                            }
+                            th {
+                                : "Language"
+                            }
+                            th {
+                                : "Link"
+                            }
+                        }
+                        @ for report in reports {
+                            tr {
+                                td {
+                                    : report.year
+                                }
+                                td {
+                                    : &report.report_type
+                                }
+                                td {
+                                    : &report.language
+                                }
+                                td {
+                                    a (href=&report.link, target=&target) {
+                                        : "Link"
+                                    }
+                                }                                
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    );
+    let mut index_file = File::create(format!("html/{}.html", &company)).unwrap();
+    writeln!(index_file, "{}", index_content).unwrap();
+    /*for report in reports {
         println!("{}", report.link);
-    }
+    }*/
 }
