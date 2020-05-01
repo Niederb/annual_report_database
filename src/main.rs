@@ -13,6 +13,8 @@ use simplelog::*;
 
 use serde_derive::Deserialize;
 
+use walkdir::WalkDir;
+
 #[derive(Debug, Deserialize)]
 enum CompanyType {
     Smi, // Swiss market index
@@ -26,13 +28,30 @@ struct Company {
     company_type: CompanyType,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Clone)]
 struct Report {
     company: String,
     language: String,
     report_type: String,
     year: u16,
     link: String,
+}
+
+pub fn create_file_list(path: &str, filetype_filter_function: &Fn(&str) -> bool) -> Vec<PathBuf> {
+    let mut file_list = Vec::new();
+    let walker = WalkDir::new(path).into_iter();
+
+    for entry in walker.filter_map(|e| e.ok()) {
+        let path = entry.into_path();
+        if let Some(os_ext) = path.extension() {
+            if let Some(ext) = os_ext.to_str() {
+                if filetype_filter_function(ext) {
+                    file_list.push(path);
+                }
+            }
+        }
+    }
+    file_list
 }
 
 async fn download(root_path: &Path, report: Report) -> Result<(), Box<dyn Error>> {
@@ -80,25 +99,27 @@ async fn download(root_path: &Path, report: Report) -> Result<(), Box<dyn Error>
     Ok(())
 }
 
-async fn iterate_files(root_path: PathBuf, file: &File) -> Result<(), Box<dyn Error>> {
+async fn iterate_files(root_path: PathBuf, file: &File) -> Result<Vec<Report>, Box<dyn Error>> {
     let mut rdr = csv::ReaderBuilder::new().delimiter(b';').from_reader(file);
     let mut future_list = Vec::new();
+    let mut reports = Vec::new();
 
     for result in rdr.deserialize() {
         let report: Report = result?;
-        let result = download(&root_path, report);
-        future_list.push(result);
+        let result = download(&root_path, report.clone());
+        future_list.push((report, result));
     }
-    for future in future_list {
+    for (report, future) in future_list {
         let result = future.await;
         match result {
             Ok(_) => {
                 //trace!("{:?}", report);
+                reports.push(report);
             }
             Err(e) => error!("Error occurred downloading file {}", e),
         }
     }
-    Ok(())
+    Ok(reports)
 }
 
 #[tokio::main]
@@ -160,14 +181,45 @@ async fn main() -> Result<(), Box<dyn Error>> {
             let path = PathBuf::from(&my_root_path);
             let result = iterate_files(path, &file).await;
             match result {
-                Ok(_) => (),
-                Err(e) => error!("Error deserializing file {:?}", file),
+                Ok(reports) => Some(reports),
+                Err(e) => {
+                    error!("Error deserializing file {:?}", file);
+                    None
+                },
             }
         });
         join_handles.push(join_handle);
     }
     for join_handle in join_handles {
-        join_handle.await;
+        let result = join_handle.await?;
+        match result {
+            Some(reports) => print_reports(&reports),
+            None => println!("Error"),
+        }
     }
+    
+    /*let is_pdf = |ext: &str | { ext.contains("pdf") };
+    println!("{:?}", &download_directory);
+    let all_documents = create_file_list(&download_directory, &is_pdf);
+    for doc in all_documents {
+        let file_name = doc.file_stem().unwrap().to_string_lossy();
+        let components: Vec<&str> = file_name.split("-").collect();
+        let document_type = components[0].clone();
+        let language = components[1].clone();
+
+        let year_folder = doc.parent().unwrap();
+        let year = year_folder.file_name().unwrap().to_string_lossy();
+
+        let company_folder = year_folder.parent().unwrap();
+        let company = company_folder.file_name().unwrap().to_string_lossy();
+        println!("{} {}: {} {}", company, year, document_type, language);
+    }
+*/
     Ok(())
+}
+
+fn print_reports(reports: &Vec<Report>) {
+    for report in reports {
+        println!("{}", report.link);
+    }
 }
