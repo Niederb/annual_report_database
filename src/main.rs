@@ -5,8 +5,8 @@ use clap::{App, Arg};
 use std::error::Error;
 use std::fs;
 use std::fs::File;
-use std::path::{Path, PathBuf};
 use std::io::Write;
+use std::path::{Path, PathBuf};
 use tokio::prelude::*;
 
 use log::{debug, error, info, trace, warn};
@@ -191,7 +191,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
                 Err(e) => {
                     error!("Error deserializing file {:?}", file);
                     None
-                },
+                }
             }
         });
         join_handles.push(join_handle);
@@ -203,24 +203,24 @@ async fn main() -> Result<(), Box<dyn Error>> {
             None => println!("Error"),
         }
     }
-    
+
     /*let is_pdf = |ext: &str | { ext.contains("pdf") };
-    println!("{:?}", &download_directory);
-    let all_documents = create_file_list(&download_directory, &is_pdf);
-    for doc in all_documents {
-        let file_name = doc.file_stem().unwrap().to_string_lossy();
-        let components: Vec<&str> = file_name.split("-").collect();
-        let document_type = components[0].clone();
-        let language = components[1].clone();
+        println!("{:?}", &download_directory);
+        let all_documents = create_file_list(&download_directory, &is_pdf);
+        for doc in all_documents {
+            let file_name = doc.file_stem().unwrap().to_string_lossy();
+            let components: Vec<&str> = file_name.split("-").collect();
+            let document_type = components[0].clone();
+            let language = components[1].clone();
 
-        let year_folder = doc.parent().unwrap();
-        let year = year_folder.file_name().unwrap().to_string_lossy();
+            let year_folder = doc.parent().unwrap();
+            let year = year_folder.file_name().unwrap().to_string_lossy();
 
-        let company_folder = year_folder.parent().unwrap();
-        let company = company_folder.file_name().unwrap().to_string_lossy();
-        println!("{} {}: {} {}", company, year, document_type, language);
-    }
-*/
+            let company_folder = year_folder.parent().unwrap();
+            let company = company_folder.file_name().unwrap().to_string_lossy();
+            println!("{} {}: {} {}", company, year, document_type, language);
+        }
+    */
     Ok(())
 }
 
@@ -270,7 +270,7 @@ fn print_reports(reports: &Vec<Report>) {
                                     a (href=&report.link, target=&target) {
                                         : "Link"
                                     }
-                                }                                
+                                }
                             }
                         }
                     }
