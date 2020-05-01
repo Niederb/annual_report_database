@@ -20,16 +20,17 @@ use horrorshow::html;
 use horrorshow::helper::doctype;
 
 #[derive(Debug, Deserialize)]
-enum CompanyType {
-    Smi, // Swiss market index
-    SmiMid,
-    Other,
+enum Language {
+    EN,
+    DE,
+    FR,
+    IT,
 }
 
 #[derive(Debug, Deserialize)]
 struct Company {
-    company: String,
-    company_type: CompanyType,
+    name: String,
+    reports: Vec<Report>,
 }
 
 #[derive(Debug, Deserialize, Clone)]
@@ -41,7 +42,7 @@ struct Report {
     link: String,
 }
 
-pub fn create_file_list(path: &str, filetype_filter_function: &Fn(&str) -> bool) -> Vec<PathBuf> {
+pub fn create_file_list(path: &str, filetype_filter_function: &dyn Fn(&str) -> bool) -> Vec<PathBuf> {
     let mut file_list = Vec::new();
     let walker = WalkDir::new(path).into_iter();
 
@@ -103,13 +104,15 @@ async fn download(root_path: &Path, report: Report) -> Result<(), Box<dyn Error>
     Ok(())
 }
 
-async fn iterate_files(root_path: PathBuf, file: &File) -> Result<Vec<Report>, Box<dyn Error>> {
+async fn iterate_files(root_path: PathBuf, file: &File) -> Result<Company, Box<dyn Error>> {
     let mut rdr = csv::ReaderBuilder::new().delimiter(b';').from_reader(file);
     let mut future_list = Vec::new();
     let mut reports = Vec::new();
+    let mut company_name = String::new();
 
     for result in rdr.deserialize() {
         let report: Report = result?;
+        company_name = report.company.clone();
         let result = download(&root_path, report.clone());
         future_list.push((report, result));
     }
@@ -123,7 +126,8 @@ async fn iterate_files(root_path: PathBuf, file: &File) -> Result<Vec<Report>, B
             Err(e) => error!("Error occurred downloading file {}", e),
         }
     }
-    Ok(reports)
+    let company = Company { name: company_name, reports};
+    Ok(company)
 }
 
 #[tokio::main]
@@ -197,7 +201,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
     for join_handle in join_handles {
         let result = join_handle.await?;
         match result {
-            Some(reports) => print_reports(&reports),
+            Some(company) => create_company_report(&company),
             None => println!("Error"),
         }
     }
@@ -222,10 +226,11 @@ async fn main() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-fn print_reports(reports: &Vec<Report>) {
+fn create_company_report(company: &Company) {
+    let reports = &company.reports;
     let company = &reports[0].company;
     let target = "_blank";
-    //println!("{} {}", , reports.len());
+
     let index_content = format!(
         "{}",
         html! {
@@ -278,7 +283,4 @@ fn print_reports(reports: &Vec<Report>) {
     );
     let mut index_file = File::create(format!("html/{}.html", &company)).unwrap();
     writeln!(index_file, "{}", index_content).unwrap();
-    /*for report in reports {
-        println!("{}", report.link);
-    }*/
 }
