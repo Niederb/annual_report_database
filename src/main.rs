@@ -198,36 +198,76 @@ async fn main() -> Result<(), Box<dyn Error>> {
         });
         join_handles.push(join_handle);
     }
+    let mut companies = Vec::new();
     for join_handle in join_handles {
         let result = join_handle.await?;
         match result {
-            Some(company) => create_company_report(&company),
+            Some(mut company) => {
+                company.reports.sort_by(|a, b| b.year.cmp(&a.year));
+                //create_company_report(&company)
+                companies.push(company);
+            },
             None => println!("Error"),
         }
     }
+    create_reports(&companies);
 
-    /*let is_pdf = |ext: &str | { ext.contains("pdf") };
-        println!("{:?}", &download_directory);
-        let all_documents = create_file_list(&download_directory, &is_pdf);
-        for doc in all_documents {
-            let file_name = doc.file_stem().unwrap().to_string_lossy();
-            let components: Vec<&str> = file_name.split("-").collect();
-            let document_type = components[0].clone();
-            let language = components[1].clone();
-
-            let year_folder = doc.parent().unwrap();
-            let year = year_folder.file_name().unwrap().to_string_lossy();
-
-            let company_folder = year_folder.parent().unwrap();
-            let company = company_folder.file_name().unwrap().to_string_lossy();
-            println!("{} {}: {} {}", company, year, document_type, language);
-        }
-    */
     Ok(())
+}
+
+fn create_reports(companies: &Vec<Company>) {
+    create_index(companies);
+    for company in companies {
+        create_company_report(company);
+    }
+}
+
+fn create_index(companies: &Vec<Company>) {
+    let index_content = format!(
+        "{}",
+        html! {
+            : doctype::HTML;
+            html {
+                head {
+                    title : "Annual reports"
+                }
+                body {
+                    h1 {
+                        : "Annual reports"
+                    }
+                    table {
+                        tr {
+                            th {
+                                : "Company"
+                            }
+                            th {
+                                : "Number documents"
+                            }
+                        }
+                        @ for company in companies {
+                            tr {
+                                td {
+                                    a (href=format_args!("{}.html", company.name)) {
+                                        : &company.name
+                                    }
+                                }
+                                td {
+                                    : &company.reports.len()
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    );
+    let mut index_file = File::create("html/index.html").unwrap();
+    writeln!(index_file, "{}", index_content).unwrap();
 }
 
 fn create_company_report(company: &Company) {
     let reports = &company.reports;
+    
     let company = &reports[0].company;
     let target = "_blank";
 
