@@ -21,10 +21,10 @@ use horrorshow::html;
 #[derive(StructOpt, Debug)]
 #[structopt(author, about)]
 struct Configuration {
-    #[structopt(short, long, default_value = "downloads/")]
+    #[structopt(short, long, default_value = "Sources/")]
     source_directory: String,
 
-    #[structopt(short, long, default_value = "Sources/")]
+    #[structopt(short, long, default_value = "downloads/")]
     download_directory: String,
 }
 
@@ -42,6 +42,11 @@ struct Company {
     reports: Vec<Report>,
     oldest_year: u16,
     newest_year: u16,
+}
+
+struct Download {
+    size: u64,
+    mime_type: String,
 }
 
 impl Company {
@@ -93,7 +98,7 @@ pub fn create_file_list(
     file_list
 }
 
-async fn download(root_path: &Path, report: Report) -> Result<(), Box<dyn Error>> {
+async fn download(root_path: &Path, report: Report) -> Result<Download, Box<dyn Error>> {
     let file_name = format!("{}-{}.pdf", report.report_type, report.language);
 
     let path = root_path.join(&report.company);
@@ -109,7 +114,7 @@ async fn download(root_path: &Path, report: Report) -> Result<(), Box<dyn Error>
         let mut file = tokio::fs::OpenOptions::new()
             .write(true)
             .create(true)
-            .open(file_path)
+            .open(&file_path)
             .await?;
         while let Some(chunk) = response.chunk().await? {
             file.write_all(&chunk).await?;
@@ -117,13 +122,18 @@ async fn download(root_path: &Path, report: Report) -> Result<(), Box<dyn Error>
     } else {
         debug!("file already exists: '{:?}'", file_path);
     }
-    Ok(())
+    let metadata = fs::metadata(&file_path)?;
+    let size = metadata.len();
+    let mime_type = tree_magic::from_filepath(&file_path);
+    let d = Download { size, mime_type};
+    Ok(d)
 }
 
-async fn iterate_files(root_path: PathBuf, file: &File) -> Result<Company, Box<dyn Error>> {
+async fn iterate_files(root_path: PathBuf, file: &File) -> Result<(Company, Vec<Download>), Box<dyn Error>> {
     let mut rdr = csv::ReaderBuilder::new().delimiter(b';').from_reader(file);
     let mut future_list = Vec::new();
     let mut reports = Vec::new();
+    let mut downloads = Vec::new();
 
     for result in rdr.deserialize() {
         let report: Report = result?;
@@ -133,15 +143,16 @@ async fn iterate_files(root_path: PathBuf, file: &File) -> Result<Company, Box<d
     for (report, future) in future_list {
         let result = future.await;
         match result {
-            Ok(_) => {
+            Ok(download) => {
                 //trace!("{:?}", report);
                 reports.push(report);
+                downloads.push(download);
             }
             Err(e) => error!("Error occurred downloading file {}", e),
         }
     }
     let company = Company::new(reports);
-    Ok(company)
+    Ok((company, downloads))
 }
 
 #[tokio::main]
@@ -179,7 +190,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
         let join_handle = tokio::spawn(async move {
             let source_file = source_file.unwrap();
             println!("Processing: {}", source_file.path().display());
-            let file = File::open(source_file.path()).unwrap();
+            let file = File::open(source_file.path()).expect(&format!("Error opening file {:?}", &source_file.path()));
             let path = PathBuf::from(&my_root_path);
             let result = iterate_files(path, &file).await;
             match result {
@@ -196,10 +207,10 @@ async fn main() -> Result<(), Box<dyn Error>> {
     for join_handle in join_handles {
         let result = join_handle.await?;
         match result {
-            Some(mut company) => {
+            Some((mut company, downloads)) => {
                 company.reports.sort_by(|a, b| b.year.cmp(&a.year));
                 //create_company_report(&company)
-                companies.push(company);
+                companies.push((company, downloads));
             }
             None => println!("Error"),
         }
@@ -209,14 +220,14 @@ async fn main() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-fn create_reports(companies: &Vec<Company>) {
+fn create_reports(companies: &Vec<(Company, Vec<Download>)>) {
     create_index(companies);
     for company in companies {
         create_company_report(company);
     }
 }
 
-fn create_index(companies: &Vec<Company>) {
+fn create_index(companies: &Vec<(Company, Vec<Download>)>) {
     let index_content = format!(
         "{}",
         html! {
@@ -241,7 +252,7 @@ fn create_index(companies: &Vec<Company>) {
                                 : "Data range"
                             }
                         }
-                        @ for company in companies {
+                        @ for (company, _) in companies {
                             tr {
                                 td {
                                     a (href=format_args!("{}.html", company.name)) {
@@ -265,10 +276,16 @@ fn create_index(companies: &Vec<Company>) {
     writeln!(index_file, "{}", index_content).unwrap();
 }
 
-fn create_company_report(company: &Company) {
-    let reports = &company.reports;
+fn create_company_report(company: &(Company, Vec<Download>)) {
+    let reports = &company.0.reports;
+    let downloads = &company.1;
 
-    let company = &reports[0].company;
+    let company_name = &company.0.name;
+
+    let documents: Vec<(&Report, &Download)> = reports.into_iter()
+        .zip(downloads.into_iter())
+        .collect();
+
     let target = "_blank";
 
     let index_content = format!(
@@ -277,11 +294,11 @@ fn create_company_report(company: &Company) {
             : doctype::HTML;
             html {
                 head {
-                    title : company
+                    title : company_name
                 }
                 body {
                     h1 {
-                        : company
+                        : company_name
                     }
                     table {
                         tr {
@@ -297,23 +314,35 @@ fn create_company_report(company: &Company) {
                             th {
                                 : "Link"
                             }
+                            th {
+                                : "Size"
+                            }
+                            th {
+                                : "Type"
+                            }                            
                         }
-                        @ for report in reports {
+                        @ for document in &documents {
                             tr {
                                 td {
-                                    : report.year
+                                    : document.0.year
                                 }
                                 td {
-                                    : &report.report_type
+                                    : &document.0.report_type
                                 }
                                 td {
-                                    : &report.language
+                                    : &document.0.language
                                 }
                                 td {
-                                    a (href=&report.link, target=&target) {
+                                    a (href=&document.0.link, target=&target) {
                                         : "Link"
                                     }
                                 }
+                                td {
+                                    : &document.1.size
+                                }              
+                                td {
+                                    : &document.1.mime_type
+                                }                                                   
                             }
                         }
                     }
@@ -321,6 +350,6 @@ fn create_company_report(company: &Company) {
             }
         }
     );
-    let mut index_file = File::create(format!("html/{}.html", &company)).unwrap();
+    let mut index_file = File::create(format!("html/{}.html", &company_name)).unwrap();
     writeln!(index_file, "{}", index_content).unwrap();
 }
