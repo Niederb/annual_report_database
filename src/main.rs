@@ -28,6 +28,23 @@ struct Configuration {
     download_directory: String,
 }
 
+fn get_document_name<'a>(abb: &'a str) -> &'a str {
+    match abb {
+        "AR" => "Annual report",
+        "FR" => "Financial report",
+        "SR" => "Sustainability report",
+        "CG" => "Corporate Governance",
+        "RS" => "Annual Results",
+        "CR" => "Compensation Report",
+        "ST" => "Strategy Report",
+        "AD" => "Addendum",
+        "AM" => "Annual Meeting Minutes",
+        "RR" => "Risk Report",
+        "RV" => "Review",
+        _ => &abb,
+    }
+}
+
 #[derive(Debug, Deserialize)]
 enum Language {
     EN,
@@ -140,8 +157,9 @@ async fn download(root_path: &Path, report: Report) -> Result<Download, Box<dyn 
         debug!("file already exists: '{:?}'", file_path);
     }
     let metadata = fs::metadata(&file_path)?;
-    let size = metadata.len();
-    let mime_type = tree_magic::from_filepath(&file_path);
+    let size = metadata.len() / 1024;
+    //let mime_type = tree_magic::from_filepath(&file_path);
+    let mime_type = "application/pdf".to_owned();
     let d = Download { size, mime_type};
     Ok(d)
 }
@@ -330,16 +348,13 @@ fn create_company_report(company_download: &CompanyDownloads) {
                                 : "Year"
                             }
                             th {
-                                : "Type"
-                            }
-                            th {
                                 : "Language"
                             }
                             th {
                                 : "Link"
                             }
                             th {
-                                : "Size"
+                                : "Size (kB)"
                             }
                             th {
                                 : "Type"
@@ -351,14 +366,11 @@ fn create_company_report(company_download: &CompanyDownloads) {
                                     : document.0.year
                                 }
                                 td {
-                                    : &document.0.report_type
-                                }
-                                td {
                                     : &document.0.language
                                 }
                                 td {
                                     a (href=&document.0.link, target=&target) {
-                                        : "Link"
+                                        : get_document_name(&document.0.report_type)
                                     }
                                 }
                                 td {
