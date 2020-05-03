@@ -49,6 +49,23 @@ struct Download {
     mime_type: String,
 }
 
+struct CompanyDownloads {
+    company: Company,
+    downloads: Vec<Download>,
+}
+
+impl CompanyDownloads {
+    pub fn get_number_warnings(&self) -> u32 {
+        let mut warnings = 0;
+        for d in &self.downloads {
+            if d.mime_type != "application/pdf" || d.size < 100 {
+                warnings += 1;
+            }
+        }
+        warnings
+    }
+}
+
 impl Company {
     fn new(reports: Vec<Report>) -> Company {
         let name = if reports.len() > 0 {
@@ -210,7 +227,8 @@ async fn main() -> Result<(), Box<dyn Error>> {
             Some((mut company, downloads)) => {
                 company.reports.sort_by(|a, b| b.year.cmp(&a.year));
                 //create_company_report(&company)
-                companies.push((company, downloads));
+                let company_download = CompanyDownloads{ company, downloads };
+                companies.push(company_download);
             }
             None => println!("Error"),
         }
@@ -220,14 +238,14 @@ async fn main() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-fn create_reports(companies: &Vec<(Company, Vec<Download>)>) {
+fn create_reports(companies: &Vec<CompanyDownloads>) {
     create_index(companies);
     for company in companies {
         create_company_report(company);
     }
 }
 
-fn create_index(companies: &Vec<(Company, Vec<Download>)>) {
+fn create_index(companies: &Vec<CompanyDownloads>) {
     let index_content = format!(
         "{}",
         html! {
@@ -251,20 +269,26 @@ fn create_index(companies: &Vec<(Company, Vec<Download>)>) {
                             th {
                                 : "Data range"
                             }
+                            th {
+                                : "Warnings"
+                            }                            
                         }
-                        @ for (company, _) in companies {
+                        @ for company_download in companies {
                             tr {
                                 td {
-                                    a (href=format_args!("{}.html", company.name)) {
-                                        : &company.name
+                                    a (href=format_args!("{}.html", company_download.company.name)) {
+                                        : &company_download.company.name
                                     }
                                 }
                                 td {
-                                    : &company.reports.len()
+                                    : &company_download.company.reports.len()
                                 }
                                 td {
-                                    : format_args!("{}-{}", &company.oldest_year, &company.newest_year)
+                                    : format_args!("{}-{}", &company_download.company.oldest_year, &company_download.company.newest_year)
                                 }
+                                td {
+                                    : &company_download.get_number_warnings()
+                                }                                
                             }
                         }
                     }
@@ -276,11 +300,11 @@ fn create_index(companies: &Vec<(Company, Vec<Download>)>) {
     writeln!(index_file, "{}", index_content).unwrap();
 }
 
-fn create_company_report(company: &(Company, Vec<Download>)) {
-    let reports = &company.0.reports;
-    let downloads = &company.1;
+fn create_company_report(company_download: &CompanyDownloads) {
+    let reports = &company_download.company.reports;
+    let downloads = &company_download.downloads;
 
-    let company_name = &company.0.name;
+    let company_name = &company_download.company.name;
 
     let documents: Vec<(&Report, &Download)> = reports.into_iter()
         .zip(downloads.into_iter())
