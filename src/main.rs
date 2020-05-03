@@ -367,7 +367,7 @@ fn create_company_report(company_download: &CompanyDownloads) {
                                 : "IT"
                             }                                                                                                     
                         }
-                        @ for year in company.oldest_year..company.newest_year {
+                        @ for year in (company.oldest_year..=company.newest_year).rev() {
                             tr {
                                 td {
                                     : year
