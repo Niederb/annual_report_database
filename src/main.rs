@@ -15,8 +15,9 @@ use serde_derive::Deserialize;
 
 use walkdir::WalkDir;
 
+use horrorshow::{RenderOnce, RenderBox, RenderMut, Render};
 use horrorshow::helper::doctype;
-use horrorshow::html;
+use horrorshow::{html, box_html};
 
 #[derive(StructOpt, Debug)]
 #[structopt(author, about)]
@@ -59,6 +60,18 @@ struct Company {
     reports: Vec<Report>,
     oldest_year: u16,
     newest_year: u16,
+}
+
+impl Company {
+    fn get_reports(&self, year: u16, language: &str) -> Vec<Report> {
+        let mut reps = Vec::new();
+        for r in &self.reports {
+            if r.year == year && r.language == language {
+                reps.push(r.clone());
+            }
+        }
+        reps
+    }
 }
 
 struct Download {
@@ -319,14 +332,8 @@ fn create_index(companies: &Vec<CompanyDownloads>) {
 }
 
 fn create_company_report(company_download: &CompanyDownloads) {
-    let reports = &company_download.company.reports;
-    let downloads = &company_download.downloads;
-
+    let company = &company_download.company;
     let company_name = &company_download.company.name;
-
-    let documents: Vec<(&Report, &Download)> = reports.into_iter()
-        .zip(downloads.into_iter())
-        .collect();
 
     let target = "_blank";
 
@@ -348,37 +355,55 @@ fn create_company_report(company_download: &CompanyDownloads) {
                                 : "Year"
                             }
                             th {
-                                : "Language"
+                                : "EN"
+                            }                               
+                            th {
+                                : "DE"
                             }
                             th {
-                                : "Link"
-                            }
+                                : "FR"
+                            }        
                             th {
-                                : "Size (kB)"
-                            }
-                            th {
-                                : "Type"
-                            }                            
+                                : "IT"
+                            }                                                                                                     
                         }
-                        @ for document in &documents {
+                        @ for year in company.oldest_year..company.newest_year {
                             tr {
                                 td {
-                                    : document.0.year
+                                    : year
                                 }
                                 td {
-                                    : &document.0.language
-                                }
-                                td {
-                                    a (href=&document.0.link, target=&target) {
-                                        : get_document_name(&document.0.report_type)
+                                    @ for report in company.get_reports(year, "EN") {
+                                        a (href=&report.link, target=&target) {
+                                            : get_document_name(&report.report_type)
+                                        }
+                                        br;
                                     }
                                 }
                                 td {
-                                    : &document.1.size
-                                }              
+                                    @ for report in company.get_reports(year, "DE") {
+                                        a (href=&report.link, target=&target) {
+                                            : get_document_name(&report.report_type)
+                                        }
+                                        br;
+                                    }
+                                }  
                                 td {
-                                    : &document.1.mime_type
-                                }                                                   
+                                    @ for report in company.get_reports(year, "FR") {
+                                        a (href=&report.link, target=&target) {
+                                            : get_document_name(&report.report_type)
+                                        }
+                                        br;
+                                    }
+                                }  
+                                td {
+                                    @ for report in company.get_reports(year, "IT") {
+                                        a (href=&report.link, target=&target) {
+                                            : get_document_name(&report.report_type)
+                                        }
+                                        br;
+                                    }
+                                }                                                                                                                                              
                             }
                         }
                     }
