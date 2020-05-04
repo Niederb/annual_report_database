@@ -15,9 +15,8 @@ use serde_derive::Deserialize;
 
 use walkdir::WalkDir;
 
-use horrorshow::{RenderOnce, RenderBox, RenderMut, Render};
 use horrorshow::helper::doctype;
-use horrorshow::{html, box_html};
+use horrorshow::{box_html, html, RenderMut};
 
 #[derive(StructOpt, Debug)]
 #[structopt(author, about)]
@@ -64,13 +63,11 @@ struct Company {
 
 impl Company {
     fn get_reports(&self, year: u16, language: &str) -> Vec<Report> {
-        let mut reps = Vec::new();
-        for r in &self.reports {
-            if r.year == year && r.language == language {
-                reps.push(r.clone());
-            }
-        }
-        reps
+        let iter = self
+            .reports
+            .iter()
+            .filter(|&r| r.year == year && r.language == language);
+        iter.cloned().collect()
     }
 }
 
@@ -85,14 +82,11 @@ struct CompanyDownloads {
 }
 
 impl CompanyDownloads {
-    pub fn get_number_warnings(&self) -> u32 {
-        let mut warnings = 0;
-        for d in &self.downloads {
-            if d.mime_type != "application/pdf" || d.size < 100 {
-                warnings += 1;
-            }
-        }
-        warnings
+    pub fn get_number_warnings(&self) -> usize {
+        self.downloads
+            .iter()
+            .filter(|&d| d.mime_type != "application/pdf" || d.size < 100)
+            .count()
     }
 }
 
@@ -173,11 +167,14 @@ async fn download(root_path: &Path, report: Report) -> Result<Download, Box<dyn 
     let size = metadata.len() / 1024;
     //let mime_type = tree_magic::from_filepath(&file_path);
     let mime_type = "application/pdf".to_owned();
-    let d = Download { size, mime_type};
+    let d = Download { size, mime_type };
     Ok(d)
 }
 
-async fn iterate_files(root_path: PathBuf, file: &File) -> Result<(Company, Vec<Download>), Box<dyn Error>> {
+async fn iterate_files(
+    root_path: PathBuf,
+    file: &File,
+) -> Result<(Company, Vec<Download>), Box<dyn Error>> {
     let mut rdr = csv::ReaderBuilder::new().delimiter(b';').from_reader(file);
     let mut future_list = Vec::new();
     let mut reports = Vec::new();
@@ -238,7 +235,8 @@ async fn main() -> Result<(), Box<dyn Error>> {
         let join_handle = tokio::spawn(async move {
             let source_file = source_file.unwrap();
             println!("Processing: {}", source_file.path().display());
-            let file = File::open(source_file.path()).expect(&format!("Error opening file {:?}", &source_file.path()));
+            let file = File::open(source_file.path())
+                .expect(&format!("Error opening file {:?}", &source_file.path()));
             let path = PathBuf::from(&my_root_path);
             let result = iterate_files(path, &file).await;
             match result {
@@ -258,7 +256,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
             Some((mut company, downloads)) => {
                 company.reports.sort_by(|a, b| b.year.cmp(&a.year));
                 //create_company_report(&company)
-                let company_download = CompanyDownloads{ company, downloads };
+                let company_download = CompanyDownloads { company, downloads };
                 companies.push(company_download);
             }
             None => println!("Error"),
@@ -302,7 +300,7 @@ fn create_index(companies: &Vec<CompanyDownloads>) {
                             }
                             th {
                                 : "Warnings"
-                            }                            
+                            }
                         }
                         @ for company_download in companies {
                             tr {
@@ -319,7 +317,7 @@ fn create_index(companies: &Vec<CompanyDownloads>) {
                                 }
                                 td {
                                     : &company_download.get_number_warnings()
-                                }                                
+                                }
                             }
                         }
                     }
@@ -331,11 +329,21 @@ fn create_index(companies: &Vec<CompanyDownloads>) {
     writeln!(index_file, "{}", index_content).unwrap();
 }
 
+fn print_reports<'a>(reports: &'a Vec<Report>) -> Box<dyn RenderMut + 'a> {
+    let target = "_blank";
+    box_html! {
+        @ for report in reports {
+            a (href=&report.link, target=&target) {
+                : get_document_name(&report.report_type)
+            }
+            br;
+        }
+    }
+}
+
 fn create_company_report(company_download: &CompanyDownloads) {
     let company = &company_download.company;
     let company_name = &company_download.company.name;
-
-    let target = "_blank";
 
     let index_content = format!(
         "{}",
@@ -356,16 +364,16 @@ fn create_company_report(company_download: &CompanyDownloads) {
                             }
                             th {
                                 : "EN"
-                            }                               
+                            }
                             th {
                                 : "DE"
                             }
                             th {
                                 : "FR"
-                            }        
+                            }
                             th {
                                 : "IT"
-                            }                                                                                                     
+                            }
                         }
                         @ for year in (company.oldest_year..=company.newest_year).rev() {
                             tr {
@@ -373,37 +381,17 @@ fn create_company_report(company_download: &CompanyDownloads) {
                                     : year
                                 }
                                 td {
-                                    @ for report in company.get_reports(year, "EN") {
-                                        a (href=&report.link, target=&target) {
-                                            : get_document_name(&report.report_type)
-                                        }
-                                        br;
-                                    }
+                                    : print_reports(&company.get_reports(year, "EN"))
                                 }
                                 td {
-                                    @ for report in company.get_reports(year, "DE") {
-                                        a (href=&report.link, target=&target) {
-                                            : get_document_name(&report.report_type)
-                                        }
-                                        br;
-                                    }
-                                }  
+                                    : print_reports(&company.get_reports(year, "DE"))
+                                }
                                 td {
-                                    @ for report in company.get_reports(year, "FR") {
-                                        a (href=&report.link, target=&target) {
-                                            : get_document_name(&report.report_type)
-                                        }
-                                        br;
-                                    }
-                                }  
+                                    : print_reports(&company.get_reports(year, "FR"))
+                                }
                                 td {
-                                    @ for report in company.get_reports(year, "IT") {
-                                        a (href=&report.link, target=&target) {
-                                            : get_document_name(&report.report_type)
-                                        }
-                                        br;
-                                    }
-                                }                                                                                                                                              
+                                    : print_reports(&company.get_reports(year, "IT"))
+                                }
                             }
                         }
                     }
