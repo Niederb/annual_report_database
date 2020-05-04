@@ -61,19 +61,16 @@ struct Company {
     newest_year: u16,
 }
 
-impl Company {
-    fn get_reports(&self, year: u16, language: &str) -> Vec<Report> {
-        let iter = self
-            .reports
-            .iter()
-            .filter(|&r| r.year == year && r.language == language);
-        iter.cloned().collect()
-    }
-}
-
+#[derive(Debug, Deserialize, Clone)]
 struct Download {
     size: u64,
     mime_type: String,
+}
+
+impl Download {
+    fn has_warning(&self) -> bool {
+        self.mime_type != "application/pdf" || self.size < 10
+    }
 }
 
 struct CompanyDownloads {
@@ -85,8 +82,15 @@ impl CompanyDownloads {
     pub fn get_number_warnings(&self) -> usize {
         self.downloads
             .iter()
-            .filter(|&d| d.mime_type != "application/pdf" || d.size < 100)
+            .filter(|&d| d.has_warning())
             .count()
+    }
+
+    fn get_reports(&self, year: u16, language: &str) -> Vec<(&Report, &Download)> {
+        let zipped_lists = self.company.reports.iter().zip(&self.downloads);
+        let iter = zipped_lists
+            .filter(|(r, _) | r.year == year && r.language == language);
+        iter.collect()
     }
 }
 
@@ -327,12 +331,16 @@ fn create_index(companies: &Vec<CompanyDownloads>) {
     writeln!(index_file, "{}", index_content).unwrap();
 }
 
-fn print_reports<'a>(reports: &'a Vec<Report>) -> Box<dyn RenderMut + 'a> {
+fn print_reports<'a>(reports: &'a Vec<(&Report, &Download)>) -> Box<dyn RenderMut + 'a> {
     let target = "_blank";
     box_html! {
-        @ for report in reports {
+        @ for (report, download) in reports {
             a (href=&report.link, target=&target) {
-                : get_document_name(&report.report_type)
+                @ if download.has_warning() {
+                    : format_args!("{} ({} kB, WARNING)", get_document_name(&report.report_type), download.size)
+                } else {
+                    : format_args!("{} ({} kB)", get_document_name(&report.report_type), download.size)
+                }
             }
             br;
         }
@@ -379,16 +387,16 @@ fn create_company_report(company_download: &CompanyDownloads) {
                                     : year
                                 }
                                 td {
-                                    : print_reports(&company.get_reports(year, "EN"))
+                                    : print_reports(&company_download.get_reports(year, "EN"))
                                 }
                                 td {
-                                    : print_reports(&company.get_reports(year, "DE"))
+                                    : print_reports(&company_download.get_reports(year, "DE"))
                                 }
                                 td {
-                                    : print_reports(&company.get_reports(year, "FR"))
+                                    : print_reports(&company_download.get_reports(year, "FR"))
                                 }
                                 td {
-                                    : print_reports(&company.get_reports(year, "IT"))
+                                    : print_reports(&company_download.get_reports(year, "IT"))
                                 }
                             }
                         }
