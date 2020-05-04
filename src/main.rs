@@ -81,15 +81,14 @@ struct CompanyDownloads {
 
 impl CompanyDownloads {
     pub fn get_number_warnings(&self) -> usize {
-        self.downloads
-            .iter()
-            .filter(|&d| d.has_warning())
-            .count()
+        self.downloads.iter().filter(|&d| d.has_warning()).count()
     }
 
     fn get_reports(&self, year: u16, language: &str) -> Vec<&Download> {
         //let zipped_lists = self.company.reports.iter().zip(&self.downloads);
-        let iter = self.downloads.iter()
+        let iter = self
+            .downloads
+            .iter()
             .filter(|d| d.report.year == year && d.report.language == language);
         iter.collect()
     }
@@ -172,7 +171,11 @@ async fn download(root_path: &Path, report: Report) -> Result<Download, Box<dyn 
     let size = metadata.len() / 1024;
     let mime_type = tree_magic::from_filepath(&file_path);
     //let mime_type = "application/pdf".to_owned();
-    let d = Download { report, size, mime_type };
+    let d = Download {
+        report,
+        size,
+        mime_type,
+    };
     Ok(d)
 }
 
@@ -278,6 +281,12 @@ fn create_reports(companies: &Vec<CompanyDownloads>) {
 }
 
 fn create_index(companies: &Vec<CompanyDownloads>) {
+    let (total_documents, total_warnings) = companies.iter().fold((0, 0), |prev, doc| {
+        (
+            prev.0 + doc.downloads.len(),
+            prev.1 + doc.get_number_warnings(),
+        )
+    });
     let index_content = format!(
         "{}",
         html! {
@@ -289,6 +298,9 @@ fn create_index(companies: &Vec<CompanyDownloads>) {
                 body {
                     h1 {
                         : "Annual reports"
+                    }
+                    p {
+                        : format_args!("In total {} documents with {} warnings", total_documents, total_warnings)
                     }
                     table {
                         tr {
