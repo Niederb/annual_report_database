@@ -63,6 +63,7 @@ struct Company {
 
 #[derive(Debug, Deserialize, Clone)]
 struct Download {
+    report: Report,
     size: u64,
     mime_type: String,
 }
@@ -86,10 +87,10 @@ impl CompanyDownloads {
             .count()
     }
 
-    fn get_reports(&self, year: u16, language: &str) -> Vec<(&Report, &Download)> {
-        let zipped_lists = self.company.reports.iter().zip(&self.downloads);
-        let iter = zipped_lists
-            .filter(|(r, _) | r.year == year && r.language == language);
+    fn get_reports(&self, year: u16, language: &str) -> Vec<&Download> {
+        //let zipped_lists = self.company.reports.iter().zip(&self.downloads);
+        let iter = self.downloads.iter()
+            .filter(|d| d.report.year == year && d.report.language == language);
         iter.collect()
     }
 }
@@ -171,7 +172,7 @@ async fn download(root_path: &Path, report: Report) -> Result<Download, Box<dyn 
     let size = metadata.len() / 1024;
     let mime_type = tree_magic::from_filepath(&file_path);
     //let mime_type = "application/pdf".to_owned();
-    let d = Download { size, mime_type };
+    let d = Download { report, size, mime_type };
     Ok(d)
 }
 
@@ -256,8 +257,8 @@ async fn main() -> Result<(), Box<dyn Error>> {
     for join_handle in join_handles {
         let result = join_handle.await?;
         match result {
-            Some((mut company, downloads)) => {
-                company.reports.sort_by(|a, b| b.year.cmp(&a.year));
+            Some((company, mut downloads)) => {
+                downloads.sort_by(|a, b| b.report.year.cmp(&a.report.year));
                 let company_download = CompanyDownloads { company, downloads };
                 companies.push(company_download);
             }
@@ -331,15 +332,15 @@ fn create_index(companies: &Vec<CompanyDownloads>) {
     writeln!(index_file, "{}", index_content).unwrap();
 }
 
-fn print_reports<'a>(reports: &'a Vec<(&Report, &Download)>) -> Box<dyn RenderMut + 'a> {
+fn print_reports<'a>(downloads: &'a Vec<&Download>) -> Box<dyn RenderMut + 'a> {
     let target = "_blank";
     box_html! {
-        @ for (report, download) in reports {
-            a (href=&report.link, target=&target) {
+        @ for download in downloads {
+            a (href=&download.report.link, target=&target) {
                 @ if download.has_warning() {
-                    : format_args!("{} ({} kB, WARNING)", get_document_name(&report.report_type), download.size)
+                    : format_args!("{} ({} kB, WARNING)", get_document_name(&download.report.report_type), download.size)
                 } else {
-                    : format_args!("{} ({} kB)", get_document_name(&report.report_type), download.size)
+                    : format_args!("{} ({} kB)", get_document_name(&download.report.report_type), download.size)
                 }
             }
             br;
