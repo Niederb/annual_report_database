@@ -165,8 +165,8 @@ async fn download(root_path: &Path, report: Report) -> Result<Download, Box<dyn 
     }
     let metadata = fs::metadata(&file_path)?;
     let size = metadata.len() / 1024;
-    //let mime_type = tree_magic::from_filepath(&file_path);
-    let mime_type = "application/pdf".to_owned();
+    let mime_type = tree_magic::from_filepath(&file_path);
+    //let mime_type = "application/pdf".to_owned();
     let d = Download { size, mime_type };
     Ok(d)
 }
@@ -189,7 +189,6 @@ async fn iterate_files(
         let result = future.await;
         match result {
             Ok(download) => {
-                //trace!("{:?}", report);
                 reports.push(report);
                 downloads.push(download);
             }
@@ -255,7 +254,6 @@ async fn main() -> Result<(), Box<dyn Error>> {
         match result {
             Some((mut company, downloads)) => {
                 company.reports.sort_by(|a, b| b.year.cmp(&a.year));
-                //create_company_report(&company)
                 let company_download = CompanyDownloads { company, downloads };
                 companies.push(company_download);
             }
