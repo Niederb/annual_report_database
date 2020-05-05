@@ -63,8 +63,8 @@ async fn download(root_path: &Path, report: Report) -> Result<Download, Box<dyn 
     }
     let metadata = fs::metadata(&file_path)?;
     let size = metadata.len() / 1024;
-    //let mime_type = tree_magic::from_filepath(&file_path);
-    let mime_type = "application/pdf".to_owned();
+    let mime_type = tree_magic::from_filepath(&file_path);
+    //let mime_type = "application/pdf".to_owned();
     let d = Download {
         report,
         size,

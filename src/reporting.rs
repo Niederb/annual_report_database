@@ -119,11 +119,11 @@ fn create_company_report(company_download: &CompanyDownloads) {
                     title : company_name
                 }
                 body {
-                    h1 {
-                        : company_name
-                    }
                     a (href="index.html") {
                         : "Back"
+                    }
+                    h1 {
+                        : company_name
                     }
                     table {
                         tr {
