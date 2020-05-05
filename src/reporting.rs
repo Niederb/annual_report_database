@@ -8,7 +8,7 @@ use crate::data_structures::{get_document_name, CompanyDownloads, Download};
 fn get_css_style() -> Box<dyn RenderMut> {
     box_html! {
         style {
-            : "table, h1, p { font-family:Consolas; }";
+            : "table, h1, p, a { font-family:Consolas; }";
             : "table { border-collapse: collapse; width: 100%; }";
             : "td { border: 1px solid black; padding: 5px; }";
         }
@@ -122,6 +122,9 @@ fn create_company_report(company_download: &CompanyDownloads) {
                     h1 {
                         : company_name
                     }
+                    a (href="index.html") {
+                        : "Back"
+                    }
                     table {
                         tr {
                             th {
@@ -151,6 +154,9 @@ fn create_company_report(company_download: &CompanyDownloads) {
                                 : print_reports(&company_download.get_reports(year, "IT"));
                             }
                         }
+                    }
+                    a (href="index.html") {
+                        : "Back"
                     }
                 }
             }
