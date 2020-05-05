@@ -169,8 +169,8 @@ async fn download(root_path: &Path, report: Report) -> Result<Download, Box<dyn 
     }
     let metadata = fs::metadata(&file_path)?;
     let size = metadata.len() / 1024;
-    let mime_type = tree_magic::from_filepath(&file_path);
-    //let mime_type = "application/pdf".to_owned();
+    //let mime_type = tree_magic::from_filepath(&file_path);
+    let mime_type = "application/pdf".to_owned();
     let d = Download {
         report,
         size,
@@ -280,6 +280,16 @@ fn create_reports(companies: &Vec<CompanyDownloads>) {
     }
 }
 
+fn get_css_style() -> Box<dyn RenderMut> {
+    box_html! {
+        style {
+            : "table, h1, p { font-family:Consolas; }";
+            : "table { border-collapse: collapse; width: 100%; }";
+            : "td { border: 1px solid black; padding: 5px; }";
+        }
+    }
+}
+
 fn create_index(companies: &Vec<CompanyDownloads>) {
     let (total_documents, total_warnings) = companies.iter().fold((0, 0), |prev, doc| {
         (
@@ -292,6 +302,7 @@ fn create_index(companies: &Vec<CompanyDownloads>) {
         html! {
             : doctype::HTML;
             html {
+                : get_css_style();                
                 head {
                     title : "Annual reports"
                 }
@@ -347,15 +358,17 @@ fn create_index(companies: &Vec<CompanyDownloads>) {
 fn print_reports<'a>(downloads: &'a Vec<&Download>) -> Box<dyn RenderMut + 'a> {
     let target = "_blank";
     box_html! {
-        @ for download in downloads {
-            a (href=&download.report.link, target=&target) {
-                @ if download.has_warning() {
-                    : format_args!("{} ({} kB, WARNING)", get_document_name(&download.report.report_type), download.size)
-                } else {
-                    : format_args!("{} ({} kB)", get_document_name(&download.report.report_type), download.size)
+        td {
+            @ for download in downloads {
+                a (href=&download.report.link, target=&target) {
+                    @ if download.has_warning() {
+                        : format_args!("{} ({} kB, WARNING)", get_document_name(&download.report.report_type), download.size)
+                    } else {
+                        : format_args!("{} ({} kB)", get_document_name(&download.report.report_type), download.size)
+                    }
                 }
+                br;
             }
-            br;
         }
     }
 }
@@ -369,6 +382,7 @@ fn create_company_report(company_download: &CompanyDownloads) {
         html! {
             : doctype::HTML;
             html {
+                : get_css_style();                     
                 head {
                     title : company_name
                 }
@@ -399,18 +413,10 @@ fn create_company_report(company_download: &CompanyDownloads) {
                                 td {
                                     : year
                                 }
-                                td {
-                                    : print_reports(&company_download.get_reports(year, "EN"))
-                                }
-                                td {
-                                    : print_reports(&company_download.get_reports(year, "DE"))
-                                }
-                                td {
-                                    : print_reports(&company_download.get_reports(year, "FR"))
-                                }
-                                td {
-                                    : print_reports(&company_download.get_reports(year, "IT"))
-                                }
+                                : print_reports(&company_download.get_reports(year, "EN"));
+                                : print_reports(&company_download.get_reports(year, "DE"));
+                                : print_reports(&company_download.get_reports(year, "FR"));
+                                : print_reports(&company_download.get_reports(year, "IT"));
                             }
                         }
                     }
