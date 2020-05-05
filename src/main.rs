@@ -1,127 +1,21 @@
 use chrono::{Datelike, Utc};
-use structopt::StructOpt;
-
 use std::error::Error;
 use std::fs;
 use std::fs::File;
-use std::io::Write;
+use structopt::StructOpt;
+
 use std::path::{Path, PathBuf};
 use tokio::prelude::*;
 
 use log::{debug, error, info};
 use simplelog::*;
 
-use serde_derive::Deserialize;
-
 use walkdir::WalkDir;
 
-use horrorshow::helper::doctype;
-use horrorshow::{box_html, html, RenderMut};
+mod data_structures;
+mod reporting;
 
-#[derive(StructOpt, Debug)]
-#[structopt(author, about)]
-struct Configuration {
-    #[structopt(short, long, default_value = "Sources/")]
-    source_directory: String,
-
-    #[structopt(short, long, default_value = "downloads/")]
-    download_directory: String,
-}
-
-fn get_document_name<'a>(abb: &'a str) -> &'a str {
-    match abb {
-        "AR" => "Annual report",
-        "FR" => "Financial report",
-        "SR" => "Sustainability report",
-        "CG" => "Corporate Governance",
-        "RS" => "Annual Results",
-        "CR" => "Compensation Report",
-        "ST" => "Strategy Report",
-        "AD" => "Addendum",
-        "AM" => "Annual Meeting Minutes",
-        "RR" => "Risk Report",
-        "RV" => "Review",
-        _ => &abb,
-    }
-}
-
-#[derive(Debug, Deserialize)]
-enum Language {
-    EN,
-    DE,
-    FR,
-    IT,
-}
-
-#[derive(Debug, Deserialize)]
-struct Company {
-    name: String,
-    reports: Vec<Report>,
-    oldest_year: u16,
-    newest_year: u16,
-}
-
-#[derive(Debug, Deserialize, Clone)]
-struct Download {
-    report: Report,
-    size: u64,
-    mime_type: String,
-}
-
-impl Download {
-    fn has_warning(&self) -> bool {
-        self.mime_type != "application/pdf" || self.size < 10
-    }
-}
-
-struct CompanyDownloads {
-    company: Company,
-    downloads: Vec<Download>,
-}
-
-impl CompanyDownloads {
-    pub fn get_number_warnings(&self) -> usize {
-        self.downloads.iter().filter(|&d| d.has_warning()).count()
-    }
-
-    fn get_reports(&self, year: u16, language: &str) -> Vec<&Download> {
-        //let zipped_lists = self.company.reports.iter().zip(&self.downloads);
-        let iter = self
-            .downloads
-            .iter()
-            .filter(|d| d.report.year == year && d.report.language == language);
-        iter.collect()
-    }
-}
-
-impl Company {
-    fn new(reports: Vec<Report>) -> Company {
-        let name = if reports.len() > 0 {
-            reports[0].company.to_owned()
-        } else {
-            String::new()
-        };
-        let newest_year = reports.iter().fold(0, |acc, x| std::cmp::max(acc, x.year));
-        let oldest_year = reports
-            .iter()
-            .fold(u16::MAX, |acc, x| std::cmp::min(acc, x.year));
-        Company {
-            name,
-            reports,
-            oldest_year,
-            newest_year,
-        }
-    }
-}
-
-#[derive(Debug, Deserialize, Clone)]
-struct Report {
-    company: String,
-    language: String,
-    report_type: String,
-    year: u16,
-    link: String,
-}
+use data_structures::{Company, CompanyDownloads, Configuration, Download, Report};
 
 pub fn create_file_list(
     path: &str,
@@ -268,162 +162,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
             None => println!("Error"),
         }
     }
-    create_reports(&companies);
+    reporting::create_reports(&companies);
 
     Ok(())
-}
-
-fn create_reports(companies: &Vec<CompanyDownloads>) {
-    create_index(companies);
-    for company in companies {
-        create_company_report(company);
-    }
-}
-
-fn get_css_style() -> Box<dyn RenderMut> {
-    box_html! {
-        style {
-            : "table, h1, p { font-family:Consolas; }";
-            : "table { border-collapse: collapse; width: 100%; }";
-            : "td { border: 1px solid black; padding: 5px; }";
-        }
-    }
-}
-
-fn create_index(companies: &Vec<CompanyDownloads>) {
-    let (total_documents, total_warnings) = companies.iter().fold((0, 0), |prev, doc| {
-        (
-            prev.0 + doc.downloads.len(),
-            prev.1 + doc.get_number_warnings(),
-        )
-    });
-    let index_content = format!(
-        "{}",
-        html! {
-            : doctype::HTML;
-            html {
-                : get_css_style();                
-                head {
-                    title : "Annual reports"
-                }
-                body {
-                    h1 {
-                        : "Annual reports"
-                    }
-                    p {
-                        : format_args!("In total {} documents with {} warnings", total_documents, total_warnings)
-                    }
-                    table {
-                        tr {
-                            th {
-                                : "Company"
-                            }
-                            th {
-                                : "Number documents"
-                            }
-                            th {
-                                : "Data range"
-                            }
-                            th {
-                                : "Warnings"
-                            }
-                        }
-                        @ for company_download in companies {
-                            tr {
-                                td {
-                                    a (href=format_args!("{}.html", company_download.company.name)) {
-                                        : &company_download.company.name
-                                    }
-                                }
-                                td {
-                                    : &company_download.company.reports.len()
-                                }
-                                td {
-                                    : format_args!("{}-{}", &company_download.company.oldest_year, &company_download.company.newest_year)
-                                }
-                                td {
-                                    : &company_download.get_number_warnings()
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    );
-    let mut index_file = File::create("html/index.html").unwrap();
-    writeln!(index_file, "{}", index_content).unwrap();
-}
-
-fn print_reports<'a>(downloads: &'a Vec<&Download>) -> Box<dyn RenderMut + 'a> {
-    let target = "_blank";
-    box_html! {
-        td {
-            @ for download in downloads {
-                a (href=&download.report.link, target=&target) {
-                    @ if download.has_warning() {
-                        : format_args!("{} ({} kB, WARNING)", get_document_name(&download.report.report_type), download.size)
-                    } else {
-                        : format_args!("{} ({} kB)", get_document_name(&download.report.report_type), download.size)
-                    }
-                }
-                br;
-            }
-        }
-    }
-}
-
-fn create_company_report(company_download: &CompanyDownloads) {
-    let company = &company_download.company;
-    let company_name = &company_download.company.name;
-
-    let index_content = format!(
-        "{}",
-        html! {
-            : doctype::HTML;
-            html {
-                : get_css_style();                     
-                head {
-                    title : company_name
-                }
-                body {
-                    h1 {
-                        : company_name
-                    }
-                    table {
-                        tr {
-                            th {
-                                : "Year"
-                            }
-                            th {
-                                : "EN"
-                            }
-                            th {
-                                : "DE"
-                            }
-                            th {
-                                : "FR"
-                            }
-                            th {
-                                : "IT"
-                            }
-                        }
-                        @ for year in (company.oldest_year..=company.newest_year).rev() {
-                            tr {
-                                td {
-                                    : year
-                                }
-                                : print_reports(&company_download.get_reports(year, "EN"));
-                                : print_reports(&company_download.get_reports(year, "DE"));
-                                : print_reports(&company_download.get_reports(year, "FR"));
-                                : print_reports(&company_download.get_reports(year, "IT"));
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    );
-    let mut index_file = File::create(format!("html/{}.html", &company_name)).unwrap();
-    writeln!(index_file, "{}", index_content).unwrap();
 }
