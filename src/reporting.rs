@@ -23,7 +23,7 @@ fn get_css_style() -> Box<dyn RenderMut> {
     }
 }
 
-fn print_reports<'a>(downloads: &'a Vec<&Download>) -> Box<dyn RenderMut + 'a> {
+fn print_reports<'a>(downloads: &'a [&Download]) -> Box<dyn RenderMut + 'a> {
     let target = "_blank";
     box_html! {
         td {
@@ -41,7 +41,7 @@ fn print_reports<'a>(downloads: &'a Vec<&Download>) -> Box<dyn RenderMut + 'a> {
     }
 }
 
-pub fn create_reports(companies: &Vec<CompanyDownloads>) {
+pub fn create_reports(companies: &[CompanyDownloads]) {
     create_index(companies);
     for company in companies {
         write_metadata(&company.company.metadata);
@@ -49,7 +49,7 @@ pub fn create_reports(companies: &Vec<CompanyDownloads>) {
     }
 }
 
-fn create_index(companies: &Vec<CompanyDownloads>) {
+fn create_index(companies: &[CompanyDownloads]) {
     let (total_documents, total_warnings) = companies.iter().fold((0, 0), |prev, doc| {
         (
             prev.0 + doc.downloads.len(),

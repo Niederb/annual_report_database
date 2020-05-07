@@ -11,7 +11,7 @@ pub struct Configuration {
     pub download_directory: String,
 }
 
-pub fn get_document_name<'a>(abb: &'a str) -> &'a str {
+pub fn get_document_name(abb: &str) -> &str {
     match abb {
         "AR" => "Annual report",
         "FR" => "Financial report",
@@ -84,7 +84,7 @@ pub struct Company {
 
 impl Company {
     pub fn new(reports: Vec<Report>) -> Company {
-        let name = if reports.len() > 0 {
+        let name = if !reports.is_empty() {
             reports[0].company.to_owned()
         } else {
             String::new()
