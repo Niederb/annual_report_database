@@ -1,4 +1,4 @@
-use serde_derive::Deserialize;
+use serde_derive::{Deserialize, Serialize};
 use structopt::StructOpt;
 
 #[derive(StructOpt, Debug)]
@@ -45,9 +45,38 @@ pub struct Report {
     pub link: String,
 }
 
+#[derive(Debug, Serialize, Deserialize)]
+pub struct CompanyMetadata {
+    pub name: String,
+    pub country: String,
+    pub tags: Vec<String>,
+    pub comment: String,
+    pub links: Vec<String>,
+    pub annual_closing_date: String,
+    pub accounting_rules: String,
+    pub legal_form: String,
+    pub share_class: String,
+}
+
+impl CompanyMetadata {
+    pub fn new(name: &str) -> CompanyMetadata {
+        CompanyMetadata {
+            name: name.to_string(),
+            country: "CH".to_string(),
+            tags: vec![],
+            comment: "".to_string(),
+            links: vec![],
+            annual_closing_date: "31.12".to_string(),
+            accounting_rules: "IFRS".to_string(),
+            legal_form: "AG".to_string(),
+            share_class: "RS".to_string(),
+        }
+    }
+}
+
 #[derive(Debug, Deserialize)]
 pub struct Company {
-    pub name: String,
+    pub metadata: CompanyMetadata,
     pub reports: Vec<Report>,
     pub oldest_year: u16,
     pub newest_year: u16,
@@ -64,8 +93,9 @@ impl Company {
         let oldest_year = reports
             .iter()
             .fold(u16::MAX, |acc, x| std::cmp::min(acc, x.year));
+        let metadata = CompanyMetadata::new(&name);
         Company {
-            name,
+            metadata,
             reports,
             oldest_year,
             newest_year,

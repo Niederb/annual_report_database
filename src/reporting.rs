@@ -1,9 +1,17 @@
 use horrorshow::helper::doctype;
 use horrorshow::{box_html, html, RenderMut};
+use std::fs;
 use std::fs::File;
 use std::io::Write;
 
-use crate::data_structures::{get_document_name, CompanyDownloads, Download};
+use crate::data_structures::{get_document_name, CompanyDownloads, CompanyMetadata, Download};
+
+fn write_metadata(metadata: &CompanyMetadata) {
+    let filename = format!("metadata/{}.json", &metadata.name);
+    let serialized = serde_json::to_string_pretty(&metadata).unwrap();
+
+    fs::write(&filename, serialized).expect(&format!("Writing file {} failed", &filename));
+}
 
 fn get_css_style() -> Box<dyn RenderMut> {
     box_html! {
@@ -36,6 +44,7 @@ fn print_reports<'a>(downloads: &'a Vec<&Download>) -> Box<dyn RenderMut + 'a> {
 pub fn create_reports(companies: &Vec<CompanyDownloads>) {
     create_index(companies);
     for company in companies {
+        write_metadata(&company.company.metadata);
         create_company_report(company);
     }
 }
@@ -81,8 +90,8 @@ fn create_index(companies: &Vec<CompanyDownloads>) {
                         @ for company_download in companies {
                             tr {
                                 td {
-                                    a (href=format_args!("{}.html", company_download.company.name)) {
-                                        : &company_download.company.name
+                                    a (href=format_args!("{}.html", company_download.company.metadata.name)) {
+                                        : &company_download.company.metadata.name
                                     }
                                 }
                                 td {
@@ -107,7 +116,7 @@ fn create_index(companies: &Vec<CompanyDownloads>) {
 
 fn create_company_report(company_download: &CompanyDownloads) {
     let company = &company_download.company;
-    let company_name = &company_download.company.name;
+    let company_name = &company_download.company.metadata.name;
 
     let index_content = format!(
         "{}",
