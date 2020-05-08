@@ -1,0 +1,11 @@
+{
+  "name": "Swiss Re AG",
+  "country": "CH",
+  "tags": ["Insurance", "SMI"],
+  "comment": "",
+  "links": [],
+  "annual_closing_date": "31.12",
+  "accounting_rules": "US GAAP",
+  "legal_form": "AG",
+  "share_class": "RS"
+}

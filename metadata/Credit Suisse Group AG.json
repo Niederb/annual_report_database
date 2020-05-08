@@ -1,0 +1,11 @@
+{
+  "name": "Credit Suisse Group AG",
+  "country": "CH",
+  "tags": ["Bank"],
+  "comment": "",
+  "links": [],
+  "annual_closing_date": "31.12",
+  "accounting_rules": "US GAAP",
+  "legal_form": "AG",
+  "share_class": "RS"
+}
