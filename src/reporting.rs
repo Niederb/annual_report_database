@@ -55,7 +55,7 @@ fn print_reports<'a>(downloads: &'a [&Download]) -> Box<dyn RenderMut + 'a> {
 pub fn create_reports(companies: &[CompanyDownloads]) {
     create_index(companies);
     for company in companies {
-        write_metadata(&company.company.metadata);
+        //write_metadata(&company.company.metadata);
         create_company_report(company);
     }
 }
