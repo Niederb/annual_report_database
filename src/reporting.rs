@@ -13,6 +13,17 @@ fn write_metadata(metadata: &CompanyMetadata) {
     fs::write(&filename, serialized).expect(&format!("Writing file {} failed", &filename));
 }
 
+
+fn get_disclaimer() -> Box<dyn RenderMut> {
+    box_html! {
+        p {
+            : "Alle Angaben sind ohne Gewähr von Richtigkeit und Vollständigkeit.";
+            br;
+            : "All information is without guarantee of correctness and completeness.";
+        }
+    }
+} 
+
 fn get_css_style() -> Box<dyn RenderMut> {
     box_html! {
         style {
@@ -106,6 +117,7 @@ fn create_index(companies: &[CompanyDownloads]) {
                             }
                         }
                     }
+                    : get_disclaimer();
                 }
             }
         }
@@ -164,9 +176,11 @@ fn create_company_report(company_download: &CompanyDownloads) {
                             }
                         }
                     }
+                    : get_disclaimer();
                     a (href="index.html") {
                         : "Back"
                     }
+                    
                 }
             }
         }
