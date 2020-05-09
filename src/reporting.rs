@@ -13,16 +13,20 @@ fn write_metadata(metadata: &CompanyMetadata) {
     fs::write(&filename, serialized).expect(&format!("Writing file {} failed", &filename));
 }
 
-
 fn get_disclaimer() -> Box<dyn RenderMut> {
     box_html! {
         p {
             : "Alle Angaben sind ohne Gewähr von Richtigkeit und Vollständigkeit.";
             br;
             : "All information is without guarantee of correctness and completeness.";
+            br;
+            : "Data and code available on ";
+            a (href="https://github.com/Niederb/annual_report_database", target="_blank") {
+                : "Github"
+            }
         }
     }
-} 
+}
 
 fn get_css_style() -> Box<dyn RenderMut> {
     box_html! {
@@ -180,7 +184,7 @@ fn create_company_report(company_download: &CompanyDownloads) {
                     a (href="index.html") {
                         : "Back"
                     }
-                    
+
                 }
             }
         }
