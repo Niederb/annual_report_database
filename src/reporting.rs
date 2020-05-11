@@ -80,11 +80,14 @@ fn create_index(companies: &[CompanyDownloads]) {
             html {
                 : get_css_style();
                 head {
-                    title : "Annual reports"
+                    title : "Annual report database";
+                    meta (charset="UTF-8") {
+
+                    }
                 }
                 body {
                     h1 {
-                        : "Annual reports"
+                        : "Annual report database"
                     }
                     p {
                         : format_args!("In total {} documents with {} warnings", total_documents, total_warnings)
@@ -143,7 +146,10 @@ fn create_company_report(company_download: &CompanyDownloads) {
             html {
                 : get_css_style();
                 head {
-                    title : company_name
+                    title : company_name;
+                    meta (charset="UTF-8") {
+
+                    }
                 }
                 body {
                     a (href="index.html") {

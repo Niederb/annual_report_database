@@ -1,4 +1,4 @@
-# AnnualReportDatabase
+# Annual Report Database
 A database of annual reports of Swiss companies. I believe it is important that these documents are available for the public in an easy manner such that they can be scrutinized. The more people that are keeping an eye on big companies the better and the easier it is to hold them accountable for their actions. To my knowledge there is no systematic collection of these documents that is available to the public. 
 
 My vision is to have a complete and extensive database of reports for all major companies in Switzerland. The database should then allow for different use cases such as:
@@ -12,7 +12,7 @@ Currently I collect the reports as list of links in csv files. The document are 
 * Big companies located in Switzerland
 * Main focus is on companies listed on the stock exchange (SIX)
 ** All companies in the SMI and SMI MID index
-** Companies responsible for major infrastructure (transportation, financial, power, ...)
+** Companies responsible for major infrastructure (transportation, financial, energy, ...)
 ** Companies that are (partially) owned by the public
 * Big companies with different other legal forms are not a focus but could also be interesting
 
@@ -24,7 +24,7 @@ Currently I collect the reports as list of links in csv files. The document are 
 
 ## Currently not collecting but would be interesting
 * Minutes from annual meetings
-* Raw data in the form of Excel sheets or similar
+* Financial data in the form of Excel sheets or similar
 * Filings to the IRS (internal revenue service)
 
 ## What I'm not collecting
@@ -43,16 +43,8 @@ Currently I collect the reports as list of links in csv files. The document are 
 * BB Biotech also forces you to accept a disclaimer
 
 ## Missing companies
-* SMI MID
-  * BB Biotech
-  * Clariant
-  * Logitech
-  * Sunrise
-  * Vifor Pharma
 
 # TODO for the downloader
 * Sometimes a download can fail
-* Proper support to check if the download resulted in a valid pdf
 * Compare the newly downloaded pdf to an existing one
-* Parallelize the downloads
 * Download only specific companies or years
