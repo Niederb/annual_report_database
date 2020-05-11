@@ -4,7 +4,9 @@ use std::fs;
 use std::fs::File;
 use std::io::Write;
 
-use crate::data_structures::{get_document_name, CompanyDownloads, CompanyMetadata, Download};
+use crate::data_structures::{
+    get_document_name, get_language, CompanyDownloads, CompanyMetadata, Download,
+};
 
 fn write_metadata(metadata: &CompanyMetadata) {
     let filename = format!("metadata/{}.json", &metadata.name);
@@ -156,16 +158,16 @@ fn create_company_report(company_download: &CompanyDownloads) {
                                 : "Year"
                             }
                             th {
-                                : "EN"
+                                : get_language("EN")
                             }
                             th {
-                                : "DE"
+                                : get_language("DE")
                             }
                             th {
-                                : "FR"
+                                : get_language("FR")
                             }
                             th {
-                                : "IT"
+                                : get_language("IT")
                             }
                         }
                         @ for year in (company.oldest_year..=company.newest_year).rev() {

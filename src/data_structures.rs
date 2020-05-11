@@ -24,7 +24,21 @@ pub fn get_document_name(abb: &str) -> &str {
         "AM" => "Annual Meeting Minutes",
         "RR" => "Risk Report",
         "RV" => "Review",
+        "PS" => "Proxy Statement",
+        "10K" => "SEC Form 10-K",
+        "20F" => "SEC Form 20-F",
+        "GRI" => "GRI Sustainability Reporting Standard",
         _ => &abb,
+    }
+}
+
+pub fn get_language(language: &str) -> &str {
+    match language {
+        "EN" => "English",
+        "DE" => "Deutsch",
+        "FR" => "Français",
+        "IT" => "Italiano",
+        _ => "",
     }
 }
 
