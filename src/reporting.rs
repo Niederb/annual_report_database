@@ -26,6 +26,10 @@ fn get_disclaimer() -> Box<dyn RenderMut> {
             a (href="https://github.com/Niederb/annual_report_database", target="_blank") {
                 : "Github"
             }
+            br;
+            a (id="warning") {
+                : "Warnings: Occur when documents are missing or not pdf files. Typically the reason is that the document was moved or that you need to approve a disclaimer in order to see it"
+            }
         }
     }
 }
@@ -104,7 +108,10 @@ fn create_index(companies: &[CompanyDownloads]) {
                                 : "Data range"
                             }
                             th {
-                                : "Warnings"
+                                : "Warnings";
+                                a (href="#warning") {
+                                    : "*"
+                                }
                             }
                         }
                         @ for company_download in companies {
