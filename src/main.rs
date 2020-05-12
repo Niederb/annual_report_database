@@ -15,7 +15,7 @@ use walkdir::WalkDir;
 mod data_structures;
 mod reporting;
 
-use data_structures::{Company, CompanyDownloads, Configuration, Download, Report};
+use data_structures::{filter_companies, Company, CompanyDownloads, Configuration, Download, Report};
 
 pub fn create_file_list(
     path: &str,
@@ -163,6 +163,8 @@ async fn main() -> Result<(), Box<dyn Error>> {
         }
     }
     reporting::create_reports(&companies);
+    let smi_list = filter_companies("SMI", &companies);
+    reporting::create_index("html/smi.html", &smi_list);
 
     Ok(())
 }

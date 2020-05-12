@@ -63,14 +63,16 @@ fn print_reports<'a>(downloads: &'a [&Download]) -> Box<dyn RenderMut + 'a> {
 }
 
 pub fn create_reports(companies: &[CompanyDownloads]) {
-    create_index(companies);
+    // A silly way to convert the slice to a slice of references
+    let all_companies = companies.iter().filter(|_| true).collect();
+    create_index("html/index.html", &all_companies);
     for company in companies {
         //write_metadata(&company.company.metadata);
         create_company_report(company);
     }
 }
 
-fn create_index(companies: &[CompanyDownloads]) {
+pub fn create_index(path: &str, companies: &Vec<&CompanyDownloads>) {
     let (total_documents, total_warnings) = companies.iter().fold((0, 0), |prev, doc| {
         (
             prev.0 + doc.downloads.len(),
@@ -138,7 +140,7 @@ fn create_index(companies: &[CompanyDownloads]) {
             }
         }
     );
-    let mut index_file = File::create("html/index.html").unwrap();
+    let mut index_file = File::create(path).unwrap();
     writeln!(index_file, "{}", index_content).unwrap();
 }
 
