@@ -165,6 +165,8 @@ async fn main() -> Result<(), Box<dyn Error>> {
     reporting::create_reports(&companies);
     let smi_list = filter_companies("SMI", &companies);
     reporting::create_index("html/smi.html", &smi_list);
+    let smi_list = filter_companies("SMIM", &companies);
+    reporting::create_index("html/smim.html", &smi_list);
 
     Ok(())
 }
