@@ -1,7 +1,7 @@
 use serde_derive::{Deserialize, Serialize};
-use structopt::StructOpt;
 use std::fs;
 use std::path::Path;
+use structopt::StructOpt;
 
 #[derive(StructOpt, Debug)]
 #[structopt(author, about)]
@@ -109,11 +109,14 @@ impl Company {
         let oldest_year = reports
             .iter()
             .fold(u16::MAX, |acc, x| std::cmp::min(acc, x.year));
-        
+
         let filename = format!("metadata/{}.json", &name);
         let metadata = if Path::new(&filename).exists() {
-            let contents = &fs::read(&filename).expect(&format!("Reading file {} failed", &filename));
-            let metadata_json: String = String::from_utf8_lossy(contents).parse().expect("failed converting to string");
+            let contents =
+                &fs::read(&filename).expect(&format!("Reading file {} failed", &filename));
+            let metadata_json: String = String::from_utf8_lossy(contents)
+                .parse()
+                .expect("failed converting to string");
             serde_json::from_str(&metadata_json).unwrap()
         } else {
             let metadata = CompanyMetadata::new(&name);
@@ -163,6 +166,12 @@ impl CompanyDownloads {
     }
 }
 
-pub fn filter_companies<'a>(tag: &str, companies: &'a [CompanyDownloads]) -> Vec<&'a CompanyDownloads> {
-    companies.iter().filter(|c| c.company.metadata.tags.iter().any( |e| e == tag)).collect()
+pub fn filter_companies<'a>(
+    tag: &str,
+    companies: &'a [CompanyDownloads],
+) -> Vec<&'a CompanyDownloads> {
+    companies
+        .iter()
+        .filter(|c| c.company.metadata.tags.iter().any(|e| e == tag))
+        .collect()
 }

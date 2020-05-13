@@ -1,0 +1,11 @@
+{
+  "name": "Migros Bank AG",
+  "country": "CH",
+  "tags": ["Bank"],
+  "comment": "",
+  "links": ["https://www.migrosbank.ch/de/ueber-uns/geschaeftsberichte.html", "https://www.migrosbank.ch/fr/a-propos-de-nous/rapports-de-gestion.html", "https://www.migrosbank.ch/it/chi-siamo/rapporti-di-gestione.html"],
+  "annual_closing_date": "",
+  "accounting_rules": "",
+  "legal_form": "AG",
+  "share_class": ""
+}
