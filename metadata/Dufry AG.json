@@ -1,11 +1,15 @@
 {
   "name": "Dufry AG",
   "country": "CH",
-  "tags": ["SMIM"],
+  "tags": [
+    "SMIM"
+  ],
   "comment": "",
   "links": [],
   "annual_closing_date": "31.12",
   "accounting_rules": "IFRS",
   "legal_form": "AG",
+  "url": "",
+  "email": "",
   "share_class": "RS"
 }

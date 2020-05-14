@@ -1,11 +1,16 @@
 {
   "name": "Swiss Life Holding AG",
   "country": "CH",
-  "tags": ["SMI", "Insurance"],
+  "tags": [
+    "SMI",
+    "Insurance"
+  ],
   "comment": "",
   "links": [],
   "annual_closing_date": "31.12",
   "accounting_rules": "IFRS",
   "legal_form": "AG",
+  "url": "",
+  "email": "",
   "share_class": "RS"
 }

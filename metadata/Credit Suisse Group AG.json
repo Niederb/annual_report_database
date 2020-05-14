@@ -1,11 +1,16 @@
 {
   "name": "Credit Suisse Group AG",
   "country": "CH",
-  "tags": ["SMI", "Bank"],
+  "tags": [
+    "SMI",
+    "Bank"
+  ],
   "comment": "",
   "links": [],
   "annual_closing_date": "31.12",
   "accounting_rules": "US GAAP",
   "legal_form": "AG",
+  "url": "https://www.credit-suisse.com",
+  "email": "",
   "share_class": "RS"
 }

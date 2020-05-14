@@ -8,7 +8,7 @@ use crate::data_structures::{
     get_document_name, get_language, CompanyDownloads, CompanyMetadata, Download,
 };
 
-fn write_metadata(metadata: &CompanyMetadata) {
+pub fn write_metadata(metadata: &CompanyMetadata) {
     let filename = format!("metadata/{}.json", &metadata.name);
     let serialized = serde_json::to_string_pretty(&metadata).unwrap();
 
@@ -37,7 +37,7 @@ fn get_disclaimer() -> Box<dyn RenderMut> {
 fn get_css_style() -> Box<dyn RenderMut> {
     box_html! {
         style {
-            : "table, h1, p, a { font-family:Consolas; }";
+            : "table, h1, h2, p, a { font-family:Consolas; }";
             : "table { border-collapse: collapse; width: 100%; }";
             : "td { border: 1px solid black; padding: 5px; }";
         }
@@ -73,6 +73,7 @@ pub fn create_reports(companies: &[CompanyDownloads]) {
 }
 
 pub fn create_index(path: &str, companies: &Vec<&CompanyDownloads>) {
+
     let (total_documents, total_warnings) = companies.iter().fold((0, 0), |prev, doc| {
         (
             prev.0 + doc.downloads.len(),
@@ -104,6 +105,12 @@ pub fn create_index(path: &str, companies: &Vec<&CompanyDownloads>) {
                                 : "Company"
                             }
                             th {
+                                : "Origin"
+                            }
+                            th {
+                                : "Annual Closing Date"
+                            }
+                            th {
                                 : "Number documents"
                             }
                             th {
@@ -122,6 +129,12 @@ pub fn create_index(path: &str, companies: &Vec<&CompanyDownloads>) {
                                     a (href=format_args!("{}.html", company_download.company.metadata.name)) {
                                         : &company_download.company.metadata.name
                                     }
+                                }
+                                td {
+                                    : &company_download.company.metadata.country
+                                }
+                                td {
+                                    : &company_download.company.metadata.annual_closing_date
                                 }
                                 td {
                                     : &company_download.company.reports.len()
@@ -146,7 +159,9 @@ pub fn create_index(path: &str, companies: &Vec<&CompanyDownloads>) {
 
 fn create_company_report(company_download: &CompanyDownloads) {
     let company = &company_download.company;
-    let company_name = &company_download.company.metadata.name;
+    
+    let metadata = &company_download.company.metadata;
+    let company_name = &metadata.name;
 
     let index_content = format!(
         "{}",
@@ -165,7 +180,13 @@ fn create_company_report(company_download: &CompanyDownloads) {
                         : "Back"
                     }
                     h1 {
-                        : company_name
+                        @ if metadata.url.is_empty() {
+                            : company_name
+                        } else {
+                            a (href=&metadata.url, target="_blank") {
+                                : company_name
+                            }
+                        }
                     }
                     table {
                         tr {
@@ -194,6 +215,20 @@ fn create_company_report(company_download: &CompanyDownloads) {
                                 : print_reports(&company_download.get_reports(year, "DE"));
                                 : print_reports(&company_download.get_reports(year, "FR"));
                                 : print_reports(&company_download.get_reports(year, "IT"));
+                            }
+                        }
+                    }
+                    @ if !metadata.links.is_empty() {
+                        h2 {
+                            : "Sources"
+                        }
+                        ul {
+                            @ for link in &metadata.links {
+                                li {
+                                    a (href=link, target="_blank") {
+                                        : link
+                                    }
+                                }
                             }
                         }
                     }

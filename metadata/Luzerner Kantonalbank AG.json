@@ -1,11 +1,15 @@
 {
   "name": "Luzerner Kantonalbank AG",
   "country": "CH",
-  "tags": ["Bank"],
+  "tags": [
+    "Bank"
+  ],
   "comment": "",
   "links": [],
   "annual_closing_date": "31.12",
   "accounting_rules": "Bank law",
   "legal_form": "AG",
+  "url": "",
+  "email": "",
   "share_class": "RS"
 }

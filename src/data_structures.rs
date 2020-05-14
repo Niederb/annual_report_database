@@ -3,6 +3,8 @@ use std::fs;
 use std::path::Path;
 use structopt::StructOpt;
 
+use crate::reporting::write_metadata;
+
 #[derive(StructOpt, Debug)]
 #[structopt(author, about)]
 pub struct Configuration {
@@ -71,6 +73,8 @@ pub struct CompanyMetadata {
     pub annual_closing_date: String,
     pub accounting_rules: String,
     pub legal_form: String,
+    pub url: String, 
+    pub email: String,
     pub share_class: String,
 }
 
@@ -85,6 +89,8 @@ impl CompanyMetadata {
             annual_closing_date: "31.12".to_string(),
             accounting_rules: "IFRS".to_string(),
             legal_form: "AG".to_string(),
+            url: "".to_string(),
+            email: "".to_string(),
             share_class: "RS".to_string(),
         }
     }
@@ -119,11 +125,9 @@ impl Company {
                 .expect("failed converting to string");
             serde_json::from_str(&metadata_json).unwrap()
         } else {
-            let metadata = CompanyMetadata::new(&name);
-            let serialized = serde_json::to_string_pretty(&metadata).unwrap();
-            fs::write(&filename, serialized).expect(&format!("Writing file {} failed", &filename));
-            metadata
+            CompanyMetadata::new(&name)
         };
+        write_metadata(&metadata);
 
         Company {
             metadata,

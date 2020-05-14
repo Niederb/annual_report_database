@@ -1,11 +1,16 @@
 {
   "name": "Zurich Insurance Group AG",
   "country": "CH",
-  "tags": ["Insucrance", "SMI"],
+  "tags": [
+    "Insucrance",
+    "SMI"
+  ],
   "comment": "",
   "links": [],
   "annual_closing_date": "31.12",
   "accounting_rules": "IFRS",
   "legal_form": "AG",
+  "url": "https://www.zurich.com/",
+  "email": "",
   "share_class": "RS"
 }

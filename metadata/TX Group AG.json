@@ -1,11 +1,15 @@
 {
   "name": "TX Group AG",
   "country": "CH",
-  "tags": ["Media"],
+  "tags": [
+    "Media"
+  ],
   "comment": "",
   "links": [],
   "annual_closing_date": "31.12",
   "accounting_rules": "IFRS",
   "legal_form": "AG",
+  "url": "",
+  "email": "",
   "share_class": "RS"
 }

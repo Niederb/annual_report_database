@@ -1,11 +1,16 @@
 {
   "name": "Julius Bär Gruppe AG",
   "country": "CH",
-  "tags": ["SMIM", "Bank"],
+  "tags": [
+    "SMIM",
+    "Bank"
+  ],
   "comment": "",
   "links": [],
   "annual_closing_date": "31.12",
   "accounting_rules": "IFRS",
   "legal_form": "AG",
+  "url": "",
+  "email": "",
   "share_class": "RS"
 }

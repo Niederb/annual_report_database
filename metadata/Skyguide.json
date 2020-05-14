@@ -1,11 +1,19 @@
 {
   "name": "Skyguide",
   "country": "CH",
-  "tags": ["Public"],
+  "tags": [
+    "Public"
+  ],
   "comment": "",
-  "links": ["https://www.skyguide.ch/de/events-medien/publikationen/", "https://www.skyguide.ch/fr/evenements-medias/publications/", "https://www.skyguide.ch/en/events-media-board/publications/"],
+  "links": [
+    "https://www.skyguide.ch/de/events-medien/publikationen/",
+    "https://www.skyguide.ch/fr/evenements-medias/publications/",
+    "https://www.skyguide.ch/en/events-media-board/publications/"
+  ],
   "annual_closing_date": "",
   "accounting_rules": "",
   "legal_form": "",
+  "url": "https://www.skyguide.ch/",
+  "email": "",
   "share_class": ""
 }
