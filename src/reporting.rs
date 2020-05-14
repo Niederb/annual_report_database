@@ -62,6 +62,25 @@ fn print_reports<'a>(downloads: &'a [&Download]) -> Box<dyn RenderMut + 'a> {
     }
 }
 
+fn print_sources<'a>(metadata: &'a CompanyMetadata) -> Box<dyn RenderMut + 'a> {
+    box_html! {
+        @ if !metadata.links.is_empty() {
+            h2 {
+                : "Sources"
+            }
+            ul {
+                @ for link in &metadata.links {
+                    li {
+                        a (href=link, target="_blank") {
+                            : link
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
 pub fn create_reports(companies: &[CompanyDownloads]) {
     // A silly way to convert the slice to a slice of references
     let all_companies = companies.iter().filter(|_| true).collect();
@@ -218,20 +237,7 @@ fn create_company_report(company_download: &CompanyDownloads) {
                             }
                         }
                     }
-                    @ if !metadata.links.is_empty() {
-                        h2 {
-                            : "Sources"
-                        }
-                        ul {
-                            @ for link in &metadata.links {
-                                li {
-                                    a (href=link, target="_blank") {
-                                        : link
-                                    }
-                                }
-                            }
-                        }
-                    }
+                    : print_sources(metadata);
                     : get_disclaimer();
                     a (href="index.html") {
                         : "Back"

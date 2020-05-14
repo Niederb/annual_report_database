@@ -1,7 +1,10 @@
 {
   "name": "Basler Kantonalbank",
   "country": "CH",
-  "tags": [],
+  "tags": [
+    "Bank",
+    "Kantonalbank"
+  ],
   "comment": "",
   "links": [],
   "annual_closing_date": "31.12",
