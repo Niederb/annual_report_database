@@ -81,6 +81,20 @@ fn print_sources<'a>(metadata: &'a CompanyMetadata) -> Box<dyn RenderMut + 'a> {
     }
 }
 
+fn print_html_metadata<'a>(metadata: &'a CompanyMetadata) -> Box<dyn RenderMut + 'a> {
+    box_html! {
+        meta (name="description", content=format!("Annual reports of {}", metadata.name)) {
+
+        }
+        meta (name="robots", content="index, follow") {
+
+        }
+        meta (name="keywords", content="annual reports, financial reports, Jahresbericht, Finanzbericht") {
+
+        }
+    }
+}
+
 pub fn create_reports(companies: &[CompanyDownloads]) {
     // A silly way to convert the slice to a slice of references
     let all_companies = companies.iter().filter(|_| true).collect();
@@ -104,8 +118,8 @@ pub fn create_index(path: &str, companies: &Vec<&CompanyDownloads>) {
         html! {
             : doctype::HTML;
             html {
-                : get_css_style();
                 head {
+                    : get_css_style();
                     title : "Annual report database";
                     meta (charset="UTF-8") {
 
@@ -187,9 +201,10 @@ fn create_company_report(company_download: &CompanyDownloads) {
         html! {
             : doctype::HTML;
             html {
-                : get_css_style();
                 head {
-                    title : company_name;
+                    : get_css_style();
+                    : print_html_metadata(&metadata);
+                    title : format!("Annual reports of {}", company_name);
                     meta (charset="UTF-8") {
 
                     }
@@ -200,10 +215,10 @@ fn create_company_report(company_download: &CompanyDownloads) {
                     }
                     h1 {
                         @ if metadata.url.is_empty() {
-                            : company_name
+                            : format!("Annual reports of {}", company_name)
                         } else {
                             a (href=&metadata.url, target="_blank") {
-                                : company_name
+                                : format!("Annual reports of {}", company_name)
                             }
                         }
                     }
