@@ -1,7 +1,9 @@
 {
   "name": "Postfinance",
   "country": "CH",
-  "tags": [],
+  "tags": [
+    "Bank"
+  ],
   "comment": "",
   "links": [],
   "annual_closing_date": "",

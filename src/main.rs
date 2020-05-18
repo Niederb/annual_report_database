@@ -177,11 +177,15 @@ async fn main() -> Result<(), Box<dyn Error>> {
             None => println!("Error"),
         }
     }
-    reporting::create_reports(&companies);
-    let smi_list = filter_companies("SMI", &companies);
-    reporting::create_index("html/smi.html", &smi_list);
-    let smi_list = filter_companies("SMIM", &companies);
-    reporting::create_index("html/smim.html", &smi_list);
+
+    let tags = [ "SMI", "SMIM", "Bank"];
+    let empty_tags = Vec::<&str>::new();
+    for t in &tags {
+        let smi_list = filter_companies(&t, &companies);
+        let path = format!("html/{}.html", &t);
+        reporting::create_index(&path, &smi_list, &empty_tags);
+    }
+    reporting::create_reports(&companies, &tags);
 
     Ok(())
 }

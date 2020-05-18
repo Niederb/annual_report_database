@@ -95,17 +95,17 @@ fn print_html_metadata<'a>(metadata: &'a CompanyMetadata) -> Box<dyn RenderMut +
     }
 }
 
-pub fn create_reports(companies: &[CompanyDownloads]) {
+pub fn create_reports(companies: &[CompanyDownloads], tags: &[&str]) {
     // A silly way to convert the slice to a slice of references
     let all_companies = companies.iter().filter(|_| true).collect();
-    create_index("html/index.html", &all_companies);
+    create_index("html/index.html", &all_companies, tags);
     for company in companies {
         //write_metadata(&company.company.metadata);
         create_company_report(company);
     }
 }
 
-pub fn create_index(path: &str, companies: &Vec<&CompanyDownloads>) {
+pub fn create_index(path: &str, companies: &Vec<&CompanyDownloads>, tags: &[&str]) {
     let (total_documents, total_warnings) = companies.iter().fold((0, 0), |prev, doc| {
         (
             prev.0 + doc.downloads.len(),
@@ -129,7 +129,18 @@ pub fn create_index(path: &str, companies: &Vec<&CompanyDownloads>) {
                         : "Annual report database"
                     }
                     p {
-                        : format_args!("In total {} documents with {} warnings", total_documents, total_warnings)
+                        : format_args!("In total {} documents of {} companies ({} warnings)", total_documents, companies.len(), total_warnings)
+                    }
+                    @ if tags.len() > 0 {
+                        p {
+                            : "Sublists: | ";
+                            @ for t in tags {
+                                a (href=format!("{}.html", t)) {
+                                    : t
+                                }
+                                : " | "
+                            }
+                        }
                     }
                     table {
                         tr {
