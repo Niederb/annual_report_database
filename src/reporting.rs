@@ -106,7 +106,6 @@ pub fn create_reports(companies: &[CompanyDownloads]) {
 }
 
 pub fn create_index(path: &str, companies: &Vec<&CompanyDownloads>) {
-
     let (total_documents, total_warnings) = companies.iter().fold((0, 0), |prev, doc| {
         (
             prev.0 + doc.downloads.len(),
@@ -192,7 +191,7 @@ pub fn create_index(path: &str, companies: &Vec<&CompanyDownloads>) {
 
 fn create_company_report(company_download: &CompanyDownloads) {
     let company = &company_download.company;
-    
+
     let metadata = &company_download.company.metadata;
     let company_name = &metadata.name;
 

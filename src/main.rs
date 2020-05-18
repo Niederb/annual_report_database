@@ -39,7 +39,7 @@ pub fn create_file_list(
     file_list
 }
 
-async fn reqwest_download(link: &str, file_path: &PathBuf) -> Result<(), Box<dyn Error>>{
+async fn reqwest_download(link: &str, file_path: &PathBuf) -> Result<(), Box<dyn Error>> {
     let mut response = reqwest::get(link).await?;
 
     let mut file = tokio::fs::OpenOptions::new()
@@ -47,7 +47,7 @@ async fn reqwest_download(link: &str, file_path: &PathBuf) -> Result<(), Box<dyn
         .create(true)
         .open(&file_path)
         .await?;
-    
+
     while let Some(chunk) = response.chunk().await? {
         file.write_all(&chunk).await?;
     }
@@ -67,7 +67,7 @@ async fn download(root_path: &Path, report: Report) -> Result<Download, Box<dyn 
         //println!("{}", report.link);
         let response = reqwest_download(&report.link, &file_path).await;
         match response {
-            Ok(_) => {},
+            Ok(_) => {}
             Err(_) => {
                 error!("Deleting file {:?}", file_path);
                 std::fs::remove_file(&file_path)?
@@ -109,9 +109,7 @@ async fn iterate_files(
                 reports.push(report);
                 downloads.push(download);
             }
-            Err(e) =>  {
-                error!("Error occurred downloading file {}", e)
-            },
+            Err(e) => error!("Error occurred downloading file {}", e),
         }
     }
     let company = Company::new(reports);

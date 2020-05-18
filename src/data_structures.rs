@@ -73,7 +73,7 @@ pub struct CompanyMetadata {
     pub annual_closing_date: String,
     pub accounting_rules: String,
     pub legal_form: String,
-    pub url: String, 
+    pub url: String,
     pub email: String,
     pub share_class: String,
 }
