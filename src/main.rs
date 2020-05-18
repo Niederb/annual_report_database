@@ -15,7 +15,9 @@ use walkdir::WalkDir;
 mod data_structures;
 mod reporting;
 
-use data_structures::{filter_companies, Company, CompanyDownloads, Configuration, Download, Report};
+use data_structures::{
+    filter_companies, Company, CompanyDownloads, Configuration, Download, Report,
+};
 
 pub fn create_file_list(
     path: &str,
@@ -37,6 +39,21 @@ pub fn create_file_list(
     file_list
 }
 
+async fn reqwest_download(link: &str, file_path: &PathBuf) -> Result<(), Box<dyn Error>>{
+    let mut response = reqwest::get(link).await?;
+
+    let mut file = tokio::fs::OpenOptions::new()
+        .write(true)
+        .create(true)
+        .open(&file_path)
+        .await?;
+    
+    while let Some(chunk) = response.chunk().await? {
+        file.write_all(&chunk).await?;
+    }
+    Ok(())
+}
+
 async fn download(root_path: &Path, report: Report) -> Result<Download, Box<dyn Error>> {
     let file_name = format!("{}-{}.pdf", report.report_type, report.language);
 
@@ -47,24 +64,22 @@ async fn download(root_path: &Path, report: Report) -> Result<Download, Box<dyn 
     let file_exists = file_path.exists();
     if !file_exists {
         info!("Processing path: '{:?}'", file_path);
-
-        let mut response = reqwest::get(&report.link).await?;
-
-        let mut file = tokio::fs::OpenOptions::new()
-            .write(true)
-            .create(true)
-            .open(&file_path)
-            .await?;
-        while let Some(chunk) = response.chunk().await? {
-            file.write_all(&chunk).await?;
+        //println!("{}", report.link);
+        let response = reqwest_download(&report.link, &file_path).await;
+        match response {
+            Ok(_) => {},
+            Err(_) => {
+                error!("Deleting file {:?}", file_path);
+                std::fs::remove_file(&file_path)?
+            }
         }
     } else {
         debug!("file already exists: '{:?}'", file_path);
     }
     let metadata = fs::metadata(&file_path)?;
     let size = metadata.len() / 1024;
-    let mime_type = tree_magic::from_filepath(&file_path);
-    //let mime_type = "application/pdf".to_owned();
+    //let mime_type = tree_magic::from_filepath(&file_path);
+    let mime_type = "application/pdf".to_owned();
     let d = Download {
         report,
         size,
@@ -94,7 +109,9 @@ async fn iterate_files(
                 reports.push(report);
                 downloads.push(download);
             }
-            Err(e) => error!("Error occurred downloading file {}", e),
+            Err(e) =>  {
+                error!("Error occurred downloading file {}", e)
+            },
         }
     }
     let company = Company::new(reports);
