@@ -1,0 +1,15 @@
+{
+  "name": "Tecan Group AG",
+  "country": "CH",
+  "tags": [],
+  "comment": "",
+  "links": [
+    "https://www.tecan.com/annual-reports"
+  ],
+  "annual_closing_date": "31.12",
+  "accounting_rules": "IFRS",
+  "legal_form": "AG",
+  "url": "https://www.tecan.com",
+  "email": "investor@tecan.com",
+  "share_class": "RS"
+}
