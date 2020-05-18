@@ -4,12 +4,15 @@
   "tags": [
     "SMIM"
   ],
-  "comment": "",
-  "links": [],
+  "comment": "Permission denied errors for GRI reports. Also GRI for 2016 is missing.",
+  "links": [
+    "https://www.logitech.com/en-ch/about/articles/ehs-archive",
+    "https://www.logitech.com/en-ch/sustainability/reports-and-resources.html"
+  ],
   "annual_closing_date": "31.03",
   "accounting_rules": "US GAAP",
   "legal_form": "AG",
-  "url": "",
+  "url": "https://www.logitech.com",
   "email": "",
   "share_class": "RS"
 }

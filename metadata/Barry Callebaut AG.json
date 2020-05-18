@@ -4,12 +4,14 @@
   "tags": [
     "SMIM"
   ],
-  "comment": "",
-  "links": [],
+  "comment": "Sustainability reports missing for year 16/16. Additional Assurance reports",
+  "links": [
+    "https://www.barry-callebaut.com/en/group/forever-chocolate/sustainability-reporting"
+  ],
   "annual_closing_date": "31.08",
   "accounting_rules": "IFRS",
   "legal_form": "AG",
-  "url": "",
+  "url": "https://www.barry-callebaut.com",
   "email": "",
   "share_class": "RS"
 }

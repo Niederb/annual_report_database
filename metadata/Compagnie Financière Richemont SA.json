@@ -5,11 +5,13 @@
     "SMI"
   ],
   "comment": "",
-  "links": [],
+  "links": [
+    "https://www.richemont.com/sustainability.html"
+  ],
   "annual_closing_date": "31.03",
   "accounting_rules": "IFRS",
   "legal_form": "AG",
-  "url": "",
+  "url": "https://www.richemont.com",
   "email": "",
   "share_class": "RS"
 }

@@ -5,11 +5,13 @@
     "SMIM"
   ],
   "comment": "",
-  "links": [],
+  "links": [
+    "https://www.dufry.com/en/media/download-center"
+  ],
   "annual_closing_date": "31.12",
   "accounting_rules": "IFRS",
   "legal_form": "AG",
-  "url": "",
+  "url": "https://www.dufry.com",
   "email": "",
   "share_class": "RS"
 }
