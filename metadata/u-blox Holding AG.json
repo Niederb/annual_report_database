@@ -1,0 +1,15 @@
+{
+  "name": "u-blox Holding AG",
+  "country": "CH",
+  "tags": [],
+  "comment": "Provides minutes of the annual general assembly",
+  "links": [
+    "https://www.u-blox.com/en/reporting-center"
+  ],
+  "annual_closing_date": "31.12",
+  "accounting_rules": "IFRS",
+  "legal_form": "AG",
+  "url": "https://www.u-blox.com",
+  "email": "",
+  "share_class": "RS"
+}

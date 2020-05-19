@@ -89,7 +89,7 @@ fn print_html_metadata<'a>(metadata: &'a CompanyMetadata) -> Box<dyn RenderMut +
         meta (name="robots", content="index, follow") {
 
         }
-        meta (name="keywords", content="annual reports, financial reports, Jahresbericht, Finanzbericht") {
+        meta (name="keywords", content=format!("annual reports, financial reports, Jahresbericht, Finanzbericht, {}", metadata.name)) {
 
         }
     }

@@ -178,7 +178,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
         }
     }
 
-    let tags = [ "SMI", "SMIM", "Bank"];
+    let tags = [ "SMI", "SMIM", "Bank", "Kantonalbank"];
     let empty_tags = Vec::<&str>::new();
     for t in &tags {
         let smi_list = filter_companies(&t, &companies);
