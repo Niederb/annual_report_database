@@ -1,0 +1,18 @@
+{
+  "name": "St.Galler Kantonalbank AG",
+  "country": "CH",
+  "tags": [
+    "Bank",
+    "Kantonalbank"
+  ],
+  "comment": "",
+  "links": [
+    "https://www.sgkb.ch/de/privatkunden/downloads/25#downloads-59"
+  ],
+  "annual_closing_date": "31.12",
+  "accounting_rules": "Bank law",
+  "legal_form": "AG",
+  "url": "https://www.sgkb.ch",
+  "email": "",
+  "share_class": "RS"
+}

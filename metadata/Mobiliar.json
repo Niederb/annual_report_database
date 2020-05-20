@@ -1,7 +1,9 @@
 {
   "name": "Mobiliar",
   "country": "CH",
-  "tags": [],
+  "tags": [
+    "Insurance"
+  ],
   "comment": "",
   "links": [],
   "annual_closing_date": "",

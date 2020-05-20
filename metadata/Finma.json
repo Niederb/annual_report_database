@@ -1,16 +1,13 @@
 {
-  "name": "Bâloise Holding AG",
+  "name": "Finma",
   "country": "CH",
-  "tags": [
-    "SMIM",
-    "Insurance"
-  ],
+  "tags": [],
   "comment": "",
   "links": [],
   "annual_closing_date": "31.12",
   "accounting_rules": "IFRS",
   "legal_form": "AG",
-  "url": "https://www.baloise.com",
+  "url": "https://finma.ch",
   "email": "",
   "share_class": "RS"
 }

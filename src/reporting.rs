@@ -126,7 +126,9 @@ pub fn create_index(path: &str, companies: &Vec<&CompanyDownloads>, tags: &[&str
                 }
                 body {
                     h1 {
-                        : "Annual report database"
+                        a (href="index.html") {
+                            : "Annual report database"
+                        }
                     }
                     p {
                         : format_args!("In total {} documents of {} companies ({} warnings)", total_documents, companies.len(), total_warnings)
@@ -169,7 +171,7 @@ pub fn create_index(path: &str, companies: &Vec<&CompanyDownloads>, tags: &[&str
                         @ for company_download in companies {
                             tr {
                                 td {
-                                    a (href=format_args!("{}.html", company_download.company.metadata.name)) {
+                                    a (href=format_args!("companies/{}.html", company_download.company.metadata.name)) {
                                         : &company_download.company.metadata.name
                                     }
                                 }
@@ -220,15 +222,16 @@ fn create_company_report(company_download: &CompanyDownloads) {
                     }
                 }
                 body {
-                    a (href="index.html") {
+                    a (href="../index.html") {
                         : "Back"
                     }
                     h1 {
                         @ if metadata.url.is_empty() {
                             : format!("Annual reports of {}", company_name)
                         } else {
+                            : "Annual reports of ";
                             a (href=&metadata.url, target="_blank") {
-                                : format!("Annual reports of {}", company_name)
+                                : company_name
                             }
                         }
                     }
@@ -264,7 +267,7 @@ fn create_company_report(company_download: &CompanyDownloads) {
                     }
                     : print_sources(metadata);
                     : get_disclaimer();
-                    a (href="index.html") {
+                    a (href="../index.html") {
                         : "Back"
                     }
 
@@ -272,6 +275,6 @@ fn create_company_report(company_download: &CompanyDownloads) {
             }
         }
     );
-    let mut index_file = File::create(format!("html/{}.html", &company_name)).unwrap();
+    let mut index_file = File::create(format!("html/companies/{}.html", &company_name)).unwrap();
     writeln!(index_file, "{}", index_content).unwrap();
 }
