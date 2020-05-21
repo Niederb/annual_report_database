@@ -1,0 +1,18 @@
+{
+  "name": "Zuger Kantonalbank",
+  "country": "CH",
+  "tags": [
+    "Bank",
+    "Kantonalbank"
+  ],
+  "comment": "",
+  "links": [
+    "https://www.zugerkb.ch/die-zugerkb/investor-relations/finanzberichterstattung"
+  ],
+  "annual_closing_date": "31.12",
+  "accounting_rules": "Bank law",
+  "legal_form": "AG",
+  "url": "https://www.zugerkb.ch",
+  "email": "",
+  "share_class": "RS"
+}
