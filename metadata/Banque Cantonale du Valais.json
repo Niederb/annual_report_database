@@ -1,0 +1,19 @@
+{
+  "name": "Banque Cantonale du Valais",
+  "country": "CH",
+  "tags": [
+    "Bank",
+    "Kantonalbank"
+  ],
+  "comment": "",
+  "links": [
+    "https://www.bcvs.ch/fr/la-bcvs/publications/rapports-de-gestion.html",
+    "https://www.bcvs.ch/de/die-wkb/publikationen/geschaeftsberichte.html"
+  ],
+  "annual_closing_date": "",
+  "accounting_rules": "",
+  "legal_form": "",
+  "url": "https://www.bcvs.ch",
+  "email": "",
+  "share_class": ""
+}

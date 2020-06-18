@@ -1,0 +1,19 @@
+{
+  "name": "Banque Cantonale de Fribourg",
+  "country": "CH",
+  "tags": [
+    "Bank",
+    "Kantonalbank"
+  ],
+  "comment": "",
+  "links": [
+    "https://www.bcf.ch/fr/la-bcf/propos-de-nous/rapport-de-gestion",
+    "https://www.bcf.ch/de/die-fkb/ueber-uns/geschaeftsberichte"
+  ],
+  "annual_closing_date": "",
+  "accounting_rules": "",
+  "legal_form": "",
+  "url": "https://www.bcf.ch",
+  "email": "",
+  "share_class": ""
+}

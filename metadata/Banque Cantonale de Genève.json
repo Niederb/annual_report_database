@@ -1,0 +1,19 @@
+{
+  "name": "Banque Cantonale de Genève",
+  "country": "CH",
+  "tags": [
+    "Bank",
+    "Kantonalbank"
+  ],
+  "comment": "",
+  "links": [
+    "https://www.bcge.ch/index.php?label_x=resultats-annuels&lang=en",
+    "https://www.bcge.ch/index.php?label_x=resultats-annuels&lang=fr"
+  ],
+  "annual_closing_date": "31.12",
+  "accounting_rules": "Bank law",
+  "legal_form": "AG",
+  "url": "https://www.bcge.ch/",
+  "email": "",
+  "share_class": "RS"
+}
