@@ -10,6 +10,7 @@ use tokio::prelude::*;
 use log::{debug, error, info};
 use simplelog::*;
 
+use reqwest::Client;
 use walkdir::WalkDir;
 
 mod data_structures;
@@ -39,8 +40,12 @@ pub fn create_file_list(
     file_list
 }
 
-async fn reqwest_download(link: &str, file_path: &PathBuf) -> Result<(), Box<dyn Error>> {
-    let mut response = reqwest::get(link).await?;
+async fn reqwest_download(
+    link: &str,
+    file_path: &PathBuf,
+    client: &Client,
+) -> Result<(), Box<dyn Error>> {
+    let mut response = client.get(link).send().await?;
 
     let mut file = tokio::fs::OpenOptions::new()
         .write(true)
@@ -54,7 +59,11 @@ async fn reqwest_download(link: &str, file_path: &PathBuf) -> Result<(), Box<dyn
     Ok(())
 }
 
-async fn download(root_path: &Path, report: Report) -> Result<Download, Box<dyn Error>> {
+async fn download(
+    root_path: &Path,
+    report: Report,
+    client: &Client,
+) -> Result<Download, Box<dyn Error>> {
     let file_name = format!("{}-{}.pdf", report.report_type, report.language);
 
     let path = root_path.join(&report.company);
@@ -65,7 +74,7 @@ async fn download(root_path: &Path, report: Report) -> Result<Download, Box<dyn 
     if !file_exists {
         info!("Processing path: '{:?}'", file_path);
         //println!("{}", report.link);
-        let response = reqwest_download(&report.link, &file_path).await;
+        let response = reqwest_download(&report.link, &file_path, &client).await;
         match response {
             Ok(_) => {}
             Err(_) => {
@@ -91,6 +100,7 @@ async fn download(root_path: &Path, report: Report) -> Result<Download, Box<dyn 
 async fn iterate_files(
     root_path: PathBuf,
     file: &File,
+    client: &Client,
 ) -> Result<(Company, Vec<Download>), Box<dyn Error>> {
     let mut rdr = csv::ReaderBuilder::new().delimiter(b';').from_reader(file);
     let mut future_list = Vec::new();
@@ -99,7 +109,7 @@ async fn iterate_files(
 
     for result in rdr.deserialize() {
         let report: Report = result?;
-        let result = download(&root_path, report.clone());
+        let result = download(&root_path, report.clone(), &client);
         future_list.push((report, result));
     }
     for (report, future) in future_list {
@@ -130,7 +140,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let source_path = Path::new(&c.source_directory);
 
     CombinedLogger::init(vec![
-        TermLogger::new(LevelFilter::Info, Config::default(), TerminalMode::Mixed).unwrap(),
+        TermLogger::new(LevelFilter::Info, Config::default(), TerminalMode::Mixed),
         WriteLogger::new(
             LevelFilter::Error,
             Config::default(),
@@ -149,12 +159,15 @@ async fn main() -> Result<(), Box<dyn Error>> {
     for source_file in paths {
         let my_root_path = root_path.clone();
         let join_handle = tokio::spawn(async move {
+            let client = reqwest::Client::builder()
+                .build()
+                .expect("Failed creating a client");
             let source_file = source_file.unwrap();
             println!("Processing: {}", source_file.path().display());
             let file = File::open(source_file.path())
                 .expect(&format!("Error opening file {:?}", &source_file.path()));
             let path = PathBuf::from(&my_root_path);
-            let result = iterate_files(path, &file).await;
+            let result = iterate_files(path, &file, &client).await;
             match result {
                 Ok(reports) => Some(reports),
                 Err(_e) => {
@@ -178,7 +191,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
         }
     }
 
-    let tags = [ "SMI", "SMIM", "Bank", "Kantonalbank", "Insurance"];
+    let tags = ["SMI", "SMIM", "Bank", "Kantonalbank", "Insurance"];
     let empty_tags = Vec::<&str>::new();
     for t in &tags {
         let smi_list = filter_companies(&t, &companies);
