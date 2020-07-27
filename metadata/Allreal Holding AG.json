@@ -1,0 +1,16 @@
+{
+  "name": "Allreal Holding AG",
+  "country": "CH",
+  "tags": [],
+  "comment": "",
+  "links": [
+    "http://www.allreal.ch/nc/medien/publikationen/geschaefstberichte/",
+    "http://www.allreal.ch/nc/en/media/publications/annual-reports/"
+  ],
+  "annual_closing_date": "31.12",
+  "accounting_rules": "IFRS",
+  "legal_form": "AG",
+  "url": "http://www.allreal.ch",
+  "email": "",
+  "share_class": "RS"
+}
