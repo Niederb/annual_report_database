@@ -1,0 +1,17 @@
+{
+  "name": "BKW AG",
+  "country": "CH",
+  "tags": [],
+  "comment": "",
+  "links": [
+    "https://www.bkw.ch/de/ueber-bkw/medien/downloadcenter",
+    "https://www.bkw.ch/en/about-us/media/download-center",
+    "https://www.bkw.ch/fr/le-groupe-bkw/medias/telechargements"
+  ],
+  "annual_closing_date": "31.12",
+  "accounting_rules": "IFRS",
+  "legal_form": "AG",
+  "url": "https://www.bkw.ch",
+  "email": "",
+  "share_class": "RS"
+}

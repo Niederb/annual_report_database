@@ -1,0 +1,17 @@
+{
+  "name": "Mobimo Holding AG",
+  "country": "CH",
+  "tags": [],
+  "comment": "",
+  "links": [
+    "https://www.mobimo.ch/de/investoren/downloadcenter",
+    "https://www.mobimo.ch/en/investors/downloadcenter",
+    "https://www.mobimo.ch/fr/investisseurs/centre-de-telechargement"
+  ],
+  "annual_closing_date": "31.12",
+  "accounting_rules": "IFRS",
+  "legal_form": "AG",
+  "url": "https://www.mobimo.ch",
+  "email": "",
+  "share_class": "RS"
+}
