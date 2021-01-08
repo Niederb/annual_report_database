@@ -1,6 +1,7 @@
 use serde_derive::{Deserialize, Serialize};
 use std::fs;
-use std::path::Path;
+use std::path::{Path, PathBuf};
+
 use structopt::StructOpt;
 
 use crate::reporting::write_metadata;
@@ -63,6 +64,17 @@ pub struct Report {
     pub link: String,
 }
 
+impl Report {
+    pub fn get_file_path(&self, root_path: &Path) -> PathBuf {
+        let file_name = format!("{}-{}.pdf", self.report_type, self.language);
+
+        let path = root_path.join(&self.company);
+        let path = path.join(&self.year.to_string());
+        //fs::create_dir_all(&path).unwrap();
+        path.join(file_name)
+    }
+}
+
 #[derive(Debug, Serialize, Deserialize)]
 pub struct CompanyMetadata {
     pub name: String,
@@ -119,7 +131,7 @@ impl Company {
         let filename = format!("metadata/{}.json", &name);
         let metadata = if Path::new(&filename).exists() {
             let contents =
-                &fs::read(&filename).expect(&format!("Reading file {} failed", &filename));
+                &fs::read(&filename).unwrap_or_else(|_| panic!("Reading file {} failed", &filename));
             let metadata_json: String = String::from_utf8_lossy(contents)
                 .parse()
                 .expect("failed converting to string");

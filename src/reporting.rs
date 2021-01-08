@@ -12,7 +12,7 @@ pub fn write_metadata(metadata: &CompanyMetadata) {
     let filename = format!("metadata/{}.json", &metadata.name);
     let serialized = serde_json::to_string_pretty(&metadata).unwrap();
 
-    fs::write(&filename, serialized).expect(&format!("Writing file {} failed", &filename));
+    fs::write(&filename, serialized).unwrap_or_else(|_| panic!("Writing file {} failed", &filename));
 }
 
 fn get_disclaimer() -> Box<dyn RenderMut> {
@@ -133,7 +133,7 @@ pub fn create_index(path: &str, companies: &Vec<&CompanyDownloads>, tags: &[&str
                     p {
                         : format_args!("In total {} documents of {} companies ({} warnings)", total_documents, companies.len(), total_warnings)
                     }
-                    @ if tags.len() > 0 {
+                    @ if ! tags.is_empty() {
                         p {
                             : "Sublists: | ";
                             @ for t in tags {

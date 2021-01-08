@@ -5,7 +5,7 @@ use std::fs::File;
 use structopt::StructOpt;
 
 use std::path::{Path, PathBuf};
-use tokio::prelude::*;
+use tokio::io::AsyncWriteExt;
 
 use log::{debug, error, info};
 use simplelog::*;
@@ -15,6 +15,7 @@ use walkdir::WalkDir;
 
 mod data_structures;
 mod reporting;
+mod extraction;
 
 use data_structures::{
     filter_companies, Company, CompanyDownloads, Configuration, Download, Report,
@@ -64,13 +65,10 @@ async fn download(
     report: Report,
     client: &Client,
 ) -> Result<Download, Box<dyn Error>> {
-    let file_name = format!("{}-{}.pdf", report.report_type, report.language);
-
-    let path = root_path.join(&report.company);
-    let path = path.join(&report.year.to_string());
-    fs::create_dir_all(&path)?;
-    let file_path = path.join(file_name);
+    let file_path = report.get_file_path(root_path);
+    //fs::create_dir_all(&file_path)?;
     let file_exists = file_path.exists();
+    //println!("{:?}", file_path);
     if !file_exists {
         info!("Processing path: '{:?}'", file_path);
         //println!("{}", report.link);
@@ -165,7 +163,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
             let source_file = source_file.unwrap();
             println!("Processing: {}", source_file.path().display());
             let file = File::open(source_file.path())
-                .expect(&format!("Error opening file {:?}", &source_file.path()));
+                .unwrap_or_else(|_| panic!("Error opening file {:?}", &source_file.path()));
             let path = PathBuf::from(&my_root_path);
             let result = iterate_files(path, &file, &client).await;
             match result {
@@ -199,6 +197,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
         reporting::create_index(&path, &smi_list, &empty_tags);
     }
     reporting::create_reports(&companies, &tags);
+    extraction::extract_text(&root_path, &companies);
 
     Ok(())
 }
