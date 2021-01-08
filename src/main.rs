@@ -66,7 +66,7 @@ async fn download(
     client: &Client,
 ) -> Result<Download, Box<dyn Error>> {
     let file_path = report.get_file_path(root_path);
-    //fs::create_dir_all(&file_path)?;
+    fs::create_dir_all(&file_path.parent().unwrap())?;
     let file_exists = file_path.exists();
     //println!("{:?}", file_path);
     if !file_exists {
@@ -117,7 +117,7 @@ async fn iterate_files(
                 reports.push(report);
                 downloads.push(download);
             }
-            Err(e) => error!("Error occurred downloading file {}", e),
+            Err(e) => error!("Error occurred downloading file {:?}: {}", report.get_file_path(&root_path), e),
         }
     }
     let company = Company::new(reports);
