@@ -12,7 +12,8 @@ pub fn write_metadata(metadata: &CompanyMetadata) {
     let filename = format!("metadata/{}.json", &metadata.name);
     let serialized = serde_json::to_string_pretty(&metadata).unwrap();
 
-    fs::write(&filename, serialized).unwrap_or_else(|_| panic!("Writing file {} failed", &filename));
+    fs::write(&filename, serialized)
+        .unwrap_or_else(|_| panic!("Writing file {} failed", &filename));
 }
 
 fn get_disclaimer() -> Box<dyn RenderMut> {

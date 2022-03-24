@@ -1,13 +1,12 @@
-use std::path::Path;
 use std::fs::File;
 use std::io::prelude::*;
+use std::path::Path;
 
 use crate::data_structures::CompanyDownloads;
 
 pub fn extract_text(root_dir: &Path, companies: &[CompanyDownloads]) {
     for c in companies {
         for d in &c.downloads {
-            
             let mut file_path = d.report.get_file_path(root_dir);
             eprintln!("{:?}", file_path);
 
@@ -24,16 +23,12 @@ pub fn extract_text(root_dir: &Path, companies: &[CompanyDownloads]) {
                         Ok(content) => {
                             let mut file = File::create(&file_path).unwrap();
                             file.write_fmt(format_args!("{}", content)).unwrap();
-                        },
+                        }
                         Err(e) => println!("Error: {}", e),
                     }
-                    
-                },
+                }
                 Err(error) => println!("Error: {}", error),
             }
-            
-            
         }
     }
-    
 }

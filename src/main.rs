@@ -14,8 +14,8 @@ use reqwest::Client;
 use walkdir::WalkDir;
 
 mod data_structures;
-mod reporting;
 mod extraction;
+mod reporting;
 
 use data_structures::{
     filter_companies, Company, CompanyDownloads, Configuration, Download, Report,
@@ -117,7 +117,11 @@ async fn iterate_files(
                 reports.push(report);
                 downloads.push(download);
             }
-            Err(e) => error!("Error occurred downloading file {:?}: {}", report.get_file_path(&root_path), e),
+            Err(e) => error!(
+                "Error occurred downloading file {:?}: {}",
+                report.get_file_path(&root_path),
+                e
+            ),
         }
     }
     let company = Company::new(reports);
