@@ -1,10 +1,10 @@
-use std::path::PathBuf;
+use std::path::Path;
 use std::fs::File;
 use std::io::prelude::*;
 
 use crate::data_structures::CompanyDownloads;
 
-pub fn extract_text(root_dir: &PathBuf, companies: &[CompanyDownloads]) {
+pub fn extract_text(root_dir: &Path, companies: &[CompanyDownloads]) {
     for c in companies {
         for d in &c.downloads {
             

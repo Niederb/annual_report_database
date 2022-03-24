@@ -33,7 +33,7 @@ pub fn get_document_name(abb: &str) -> &str {
         "10K" => "SEC Form 10-K",
         "20F" => "SEC Form 20-F",
         "GRI" => "GRI Sustainability Reporting Standard",
-        _ => &abb,
+        _ => abb,
     }
 }
 
@@ -106,6 +106,15 @@ impl CompanyMetadata {
             share_class: "RS".to_string(),
         }
     }
+
+    pub fn from_metadata(filename: String) -> CompanyMetadata {
+        let contents =
+            &fs::read(&filename).unwrap_or_else(|_| panic!("Reading file {} failed", &filename));
+        let metadata_json: String = String::from_utf8_lossy(contents)
+            .parse()
+            .expect("failed converting to string");
+        serde_json::from_str(&metadata_json).unwrap()
+    }
 }
 
 #[derive(Debug, Deserialize)]
@@ -130,12 +139,7 @@ impl Company {
 
         let filename = format!("metadata/{}.json", &name);
         let metadata = if Path::new(&filename).exists() {
-            let contents =
-                &fs::read(&filename).unwrap_or_else(|_| panic!("Reading file {} failed", &filename));
-            let metadata_json: String = String::from_utf8_lossy(contents)
-                .parse()
-                .expect("failed converting to string");
-            serde_json::from_str(&metadata_json).unwrap()
+            CompanyMetadata::from_metadata(filename)
         } else {
             CompanyMetadata::new(&name)
         };

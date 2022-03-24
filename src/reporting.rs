@@ -215,7 +215,7 @@ fn create_company_report(company_download: &CompanyDownloads) {
             html {
                 head {
                     : get_css_style();
-                    : print_html_metadata(&metadata);
+                    : print_html_metadata(metadata);
                     title : format!("Annual reports of {}", company_name);
                     meta (charset="UTF-8") {
 

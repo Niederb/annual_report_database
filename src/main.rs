@@ -43,7 +43,7 @@ pub fn create_file_list(
 
 async fn reqwest_download(
     link: &str,
-    file_path: &PathBuf,
+    file_path: &Path,
     client: &Client,
 ) -> Result<(), Box<dyn Error>> {
     let mut response = client.get(link).send().await?;
@@ -72,7 +72,7 @@ async fn download(
     if !file_exists {
         info!("Processing path: '{:?}'", file_path);
         //println!("{}", report.link);
-        let response = reqwest_download(&report.link, &file_path, &client).await;
+        let response = reqwest_download(&report.link, &file_path, client).await;
         match response {
             Ok(_) => {}
             Err(_) => {
@@ -107,7 +107,7 @@ async fn iterate_files(
 
     for result in rdr.deserialize() {
         let report: Report = result?;
-        let result = download(&root_path, report.clone(), &client);
+        let result = download(&root_path, report.clone(), client);
         future_list.push((report, result));
     }
     for (report, future) in future_list {
@@ -192,7 +192,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let tags = ["SMI", "SMIM", "Bank", "Kantonalbank", "Insurance"];
     let empty_tags = Vec::<&str>::new();
     for t in &tags {
-        let smi_list = filter_companies(&t, &companies);
+        let smi_list = filter_companies(t, &companies);
         let path = format!("html/{}.html", &t);
         reporting::create_index(&path, &smi_list, &empty_tags);
     }
