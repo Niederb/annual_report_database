@@ -117,13 +117,18 @@ impl CompanyMetadata {
     }
 }
 
-pub fn get_metadata(path: &str) -> Vec<CompanyMetadata> {
+pub fn get_metadata<F>(path: &str, f: F) -> Vec<CompanyMetadata>
+where
+    F: Fn(&CompanyMetadata) -> bool,
+{
     let paths = fs::read_dir(path).unwrap();
     let mut metas = Vec::new();
     for source_file in paths {
         let path = source_file.unwrap().path();
         let meta = CompanyMetadata::from_metadata(path.to_str().unwrap());
-        metas.push(meta);
+        if f(&meta) {
+            metas.push(meta);
+        }
     }
     metas
 }

@@ -9,7 +9,9 @@ use annual_report_database::data_structures::*;
 
 fn main() {
     let mut resolver = Resolver::new(ResolverConfig::default(), ResolverOpts::default()).unwrap();
-    let metas = get_metadata("./metadata");
+    let metas = get_metadata("./metadata", |meta| {
+        meta.tags.contains(&"Canton".to_string())
+    });
     for meta in metas {
         let url = meta
             .url
@@ -33,14 +35,12 @@ fn display_txt(txt_response: &ResolveResult<TxtLookup>) -> Spf {
     match txt_response {
         Err(_) => println!("No TXT Records."),
         Ok(txt_response) => {
-            let mut i = 1;
             for record in txt_response.iter() {
                 if record.to_string().starts_with("v=spf1") {
-                    spf_record = record.to_string().parse().unwrap_or(Spf::default());
+                    spf_record = record.to_string().parse().unwrap_or_default();
                     let a = record.to_string().parse::<Record>().unwrap();
                     println!("{}", a);
                 }
-                i = i + 1;
             }
         }
     }
