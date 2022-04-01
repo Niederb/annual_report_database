@@ -20,6 +20,7 @@ mod reporting;
 use data_structures::{
     filter_companies, Company, CompanyDownloads, Configuration, Download, Report,
 };
+use crate::data_structures::CompanyMetadata;
 
 pub fn create_file_list(
     path: &str,
@@ -127,81 +128,145 @@ async fn iterate_files(
     let company = Company::new(reports);
     Ok((company, downloads))
 }
+//
+// #[tokio::main]
+// async fn main() -> Result<(), Box<dyn Error>> {
+//     let c = Configuration::from_args();
+//
+//     let now = Utc::now();
+//     let date = format!("{}-{:02}-{:02}", now.year(), now.month(), now.day());
+//
+//     let download_directory = format!("{}/{}", c.download_directory, date);
+//     let log_file = format!("{}/output.txt", download_directory);
+//     let root_path = PathBuf::from(&download_directory);
+//     fs::create_dir_all(&root_path).unwrap();
+//     let source_path = Path::new(&c.source_directory);
+//
+//     CombinedLogger::init(vec![
+//         TermLogger::new(LevelFilter::Info, Config::default(), TerminalMode::Mixed),
+//         WriteLogger::new(
+//             LevelFilter::Error,
+//             Config::default(),
+//             File::create(log_file).unwrap(),
+//         ),
+//     ])
+//     .unwrap();
+//
+//     println!(
+//         "Downloading into {:?} from source directory {:?}",
+//         root_path, source_path
+//     );
+//     let paths = fs::read_dir(source_path).unwrap();
+//
+//     let mut join_handles = Vec::new();
+//     for source_file in paths {
+//         let my_root_path = root_path.clone();
+//         let join_handle = tokio::spawn(async move {
+//             let client = reqwest::Client::builder()
+//                 .build()
+//                 .expect("Failed creating a client");
+//             let source_file = source_file.unwrap();
+//             println!("Processing: {}", source_file.path().display());
+//             let file = File::open(source_file.path())
+//                 .unwrap_or_else(|_| panic!("Error opening file {:?}", &source_file.path()));
+//             let path = PathBuf::from(&my_root_path);
+//             let result = iterate_files(path, &file, &client).await;
+//             match result {
+//                 Ok(reports) => Some(reports),
+//                 Err(_e) => {
+//                     error!("Error deserializing file {:?}", file);
+//                     None
+//                 }
+//             }
+//         });
+//         join_handles.push(join_handle);
+//     }
+//     let mut companies = Vec::new();
+//     for join_handle in join_handles {
+//         let result = join_handle.await?;
+//         match result {
+//             Some((company, mut downloads)) => {
+//                 downloads.sort_by(|a, b| b.report.year.cmp(&a.report.year));
+//                 let company_download = CompanyDownloads { company, downloads };
+//                 companies.push(company_download);
+//             }
+//             None => println!("Error"),
+//         }
+//     }
+//
+//     let tags = ["SMI", "SMIM", "Bank", "Kantonalbank", "Insurance"];
+//     let empty_tags = Vec::<&str>::new();
+//     for t in &tags {
+//         let smi_list = filter_companies(t, &companies);
+//         let path = format!("html/{}.html", &t);
+//         reporting::create_index(&path, &smi_list, &empty_tags);
+//     }
+//     reporting::create_reports(&companies, &tags);
+//     extraction::extract_text(&root_path, &companies);
+//
+//     Ok(())
+// }
 
-#[tokio::main]
-async fn main() -> Result<(), Box<dyn Error>> {
-    let c = Configuration::from_args();
+use viaspf_record::Record;
+use decon_spf::Spf;
+use std::net::*;
+use trust_dns_resolver::Resolver;
+use trust_dns_resolver::config::*;
+use trust_dns_resolver::lookup::*;
+use trust_dns_resolver::error::ResolveResult;
 
-    let now = Utc::now();
-    let date = format!("{}-{:02}-{:02}", now.year(), now.month(), now.day());
-
-    let download_directory = format!("{}/{}", c.download_directory, date);
-    let log_file = format!("{}/output.txt", download_directory);
-    let root_path = PathBuf::from(&download_directory);
-    fs::create_dir_all(&root_path).unwrap();
-    let source_path = Path::new(&c.source_directory);
-
-    CombinedLogger::init(vec![
-        TermLogger::new(LevelFilter::Info, Config::default(), TerminalMode::Mixed),
-        WriteLogger::new(
-            LevelFilter::Error,
-            Config::default(),
-            File::create(log_file).unwrap(),
-        ),
-    ])
-    .unwrap();
-
-    println!(
-        "Downloading into {:?} from source directory {:?}",
-        root_path, source_path
-    );
-    let paths = fs::read_dir(source_path).unwrap();
-
-    let mut join_handles = Vec::new();
+fn get_metadata() -> Vec<CompanyMetadata> {
+    let paths = fs::read_dir("metadata/").unwrap();
+    let mut metas = Vec::new();
     for source_file in paths {
-        let my_root_path = root_path.clone();
-        let join_handle = tokio::spawn(async move {
-            let client = reqwest::Client::builder()
-                .build()
-                .expect("Failed creating a client");
-            let source_file = source_file.unwrap();
-            println!("Processing: {}", source_file.path().display());
-            let file = File::open(source_file.path())
-                .unwrap_or_else(|_| panic!("Error opening file {:?}", &source_file.path()));
-            let path = PathBuf::from(&my_root_path);
-            let result = iterate_files(path, &file, &client).await;
-            match result {
-                Ok(reports) => Some(reports),
-                Err(_e) => {
-                    error!("Error deserializing file {:?}", file);
-                    None
-                }
-            }
-        });
-        join_handles.push(join_handle);
+        let path = source_file.unwrap().path();
+        let meta = CompanyMetadata::from_metadata(path.to_str().unwrap());
+        metas.push(meta);
     }
-    let mut companies = Vec::new();
-    for join_handle in join_handles {
-        let result = join_handle.await?;
-        match result {
-            Some((company, mut downloads)) => {
-                downloads.sort_by(|a, b| b.report.year.cmp(&a.report.year));
-                let company_download = CompanyDownloads { company, downloads };
-                companies.push(company_download);
+    metas
+}
+
+fn main() {
+    let paths = fs::read_dir("metadata/").unwrap();
+
+    let mut resolver = Resolver::new(ResolverConfig::default(), ResolverOpts::default()).unwrap();
+    let metas = get_metadata();
+    for meta in metas {
+        let url = meta.url.replace("https://", "").replace("http://", "").replace("www.", "");
+        println!("{:?}, URL: {}", meta.name, meta.url);
+        spf_query(&mut resolver, &url);
+        println!();
+    }
+}
+
+
+fn spf_query(resolver: &mut Resolver, query: &str) {
+    let mut txt_response = resolver.txt_lookup(query);
+    //println!("Response: {:?}", txt_response);
+
+    let spf_record = display_txt(&query, &txt_response);
+    println!("Valid: {}, {:?}", spf_record.is_valid(), spf_record);
+}
+
+fn display_txt(query: &str, txt_response: &ResolveResult<TxtLookup>) -> Spf {
+    //let mut spf_record = "".to_string();
+    let mut spf_record = Spf::default();
+    match txt_response {
+        Err(_) => println!("No TXT Records."),
+        Ok(txt_response) => {
+            let mut i = 1;
+            //println!("List of TXT records found for {}", &query);
+            for record in txt_response.iter() {
+                //println!("TXT Record {}:", i);
+                //println!("{}", &record.to_string());
+                if record.to_string().starts_with("v=spf1") {
+                    spf_record = record.to_string().parse().unwrap_or(Spf::default());
+                    let a = record.to_string().parse::<Record>().unwrap();
+                    println!("{}", a);
+                }
+                i = i + 1;
             }
-            None => println!("Error"),
         }
     }
-
-    let tags = ["SMI", "SMIM", "Bank", "Kantonalbank", "Insurance"];
-    let empty_tags = Vec::<&str>::new();
-    for t in &tags {
-        let smi_list = filter_companies(t, &companies);
-        let path = format!("html/{}.html", &t);
-        reporting::create_index(&path, &smi_list, &empty_tags);
-    }
-    reporting::create_reports(&companies, &tags);
-    extraction::extract_text(&root_path, &companies);
-
-    Ok(())
+    spf_record
 }

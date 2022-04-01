@@ -107,7 +107,7 @@ impl CompanyMetadata {
         }
     }
 
-    pub fn from_metadata(filename: String) -> CompanyMetadata {
+    pub fn from_metadata(filename: &str) -> CompanyMetadata {
         let contents =
             &fs::read(&filename).unwrap_or_else(|_| panic!("Reading file {} failed", &filename));
         let metadata_json: String = String::from_utf8_lossy(contents)
@@ -139,7 +139,7 @@ impl Company {
 
         let filename = format!("metadata/{}.json", &name);
         let metadata = if Path::new(&filename).exists() {
-            CompanyMetadata::from_metadata(filename)
+            CompanyMetadata::from_metadata(&filename)
         } else {
             CompanyMetadata::new(&name)
         };
