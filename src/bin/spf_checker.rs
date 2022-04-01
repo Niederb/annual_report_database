@@ -13,13 +13,9 @@ fn main() {
         meta.tags.contains(&"Canton".to_string())
     });
     for meta in metas {
-        let url = meta
-            .url
-            .replace("https://", "")
-            .replace("http://", "")
-            .replace("www.", "");
-        println!("{:?}, URL: {}", meta.name, meta.url);
-        spf_query(&mut resolver, &url);
+        let domainname = meta.get_domainname();
+        println!("{:?}, Domainname: {}", meta.name, domainname);
+        spf_query(&mut resolver, &domainname);
         println!();
     }
 }

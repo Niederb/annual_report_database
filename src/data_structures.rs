@@ -115,6 +115,13 @@ impl CompanyMetadata {
             .expect("failed converting to string");
         serde_json::from_str(&metadata_json).unwrap()
     }
+
+    pub fn get_domainname(&self) -> String {
+        self.url
+            .replace("https://", "")
+            .replace("http://", "")
+            .replace("www.", "")
+    }
 }
 
 pub fn get_metadata<F>(path: &str, f: F) -> Vec<CompanyMetadata>
