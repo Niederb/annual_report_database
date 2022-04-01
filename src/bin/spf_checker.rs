@@ -1,5 +1,4 @@
 use decon_spf::Spf;
-use std::fs;
 use trust_dns_resolver::config::*;
 use trust_dns_resolver::error::ResolveResult;
 use trust_dns_resolver::lookup::*;
@@ -8,20 +7,9 @@ use viaspf_record::Record;
 
 use annual_report_database::data_structures::*;
 
-fn get_metadata() -> Vec<CompanyMetadata> {
-    let paths = fs::read_dir("metadata/").unwrap();
-    let mut metas = Vec::new();
-    for source_file in paths {
-        let path = source_file.unwrap().path();
-        let meta = CompanyMetadata::from_metadata(path.to_str().unwrap());
-        metas.push(meta);
-    }
-    metas
-}
-
 fn main() {
     let mut resolver = Resolver::new(ResolverConfig::default(), ResolverOpts::default()).unwrap();
-    let metas = get_metadata();
+    let metas = get_metadata("./metadata");
     for meta in metas {
         let url = meta
             .url
