@@ -1,6 +1,5 @@
 use decon_spf::Spf;
 use std::fs;
-use std::net::*;
 use trust_dns_resolver::config::*;
 use trust_dns_resolver::error::ResolveResult;
 use trust_dns_resolver::lookup::*;
@@ -37,21 +36,17 @@ fn main() {
 
 fn spf_query(resolver: &mut Resolver, query: &str) {
     let txt_response = resolver.txt_lookup(query);
-    let spf_record = display_txt(&query, &txt_response);
+    let spf_record = display_txt(&txt_response);
     println!("Valid: {}, {:?}", spf_record.is_valid(), spf_record);
 }
 
-fn display_txt(query: &str, txt_response: &ResolveResult<TxtLookup>) -> Spf {
-    //let mut spf_record = "".to_string();
+fn display_txt(txt_response: &ResolveResult<TxtLookup>) -> Spf {
     let mut spf_record = Spf::default();
     match txt_response {
         Err(_) => println!("No TXT Records."),
         Ok(txt_response) => {
             let mut i = 1;
-            //println!("List of TXT records found for {}", &query);
             for record in txt_response.iter() {
-                //println!("TXT Record {}:", i);
-                //println!("{}", &record.to_string());
                 if record.to_string().starts_with("v=spf1") {
                     spf_record = record.to_string().parse().unwrap_or(Spf::default());
                     let a = record.to_string().parse::<Record>().unwrap();
