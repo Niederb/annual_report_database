@@ -75,7 +75,7 @@ impl Report {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord)]
 pub struct CompanyMetadata {
     pub name: String,
     pub country: String,
@@ -116,11 +116,15 @@ impl CompanyMetadata {
         serde_json::from_str(&metadata_json).unwrap()
     }
 
-    pub fn get_domainname(&self) -> String {
-        self.url
+    pub fn get_domainname(&self, remove_www: bool) -> String {
+        let domainname = self.url
             .replace("https://", "")
-            .replace("http://", "")
-            .replace("www.", "")
+            .replace("http://", "");
+        if remove_www {
+            domainname.replace("www.", "")
+        } else {
+            domainname
+        }
     }
 }
 
@@ -137,6 +141,7 @@ where
             metas.push(meta);
         }
     }
+    metas.sort();
     metas
 }
 

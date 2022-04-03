@@ -13,7 +13,7 @@ fn main() {
         meta.tags.contains(&"Canton".to_string())
     });
     for meta in metas {
-        let domainname = meta.get_domainname();
+        let domainname = meta.get_domainname(true);
         println!("{:?}, Domainname: {}", meta.name, domainname);
         spf_query(&mut resolver, &domainname);
         println!();
