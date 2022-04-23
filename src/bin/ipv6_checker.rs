@@ -20,6 +20,6 @@ fn ipv6_query(resolver: &mut Resolver, query: &str) -> bool {
 
     match ipv6_response {
         Err(_) => false,
-        Ok(ipv6_response) => true,
+        Ok(_) => true,
     }
 }
