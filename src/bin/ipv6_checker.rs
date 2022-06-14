@@ -5,9 +5,7 @@ use annual_report_database::data_structures::*;
 
 fn main() {
     let mut resolver = Resolver::new(ResolverConfig::google(), ResolverOpts::default()).unwrap();
-    let metas = get_metadata("./metadata", |meta| {
-        meta.tags.contains(&"SMI".to_string())
-    });
+    let metas = get_metadata("./metadata", |meta| meta.tags.contains(&"SMI".to_string()));
     for meta in metas {
         let domainname = meta.get_domainname(false);
         let has_ipv6_record = ipv6_query(&mut resolver, &domainname);

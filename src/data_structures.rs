@@ -117,9 +117,7 @@ impl CompanyMetadata {
     }
 
     pub fn get_domainname(&self, remove_www: bool) -> String {
-        let domainname = self.url
-            .replace("https://", "")
-            .replace("http://", "");
+        let domainname = self.url.replace("https://", "").replace("http://", "");
         if remove_www {
             domainname.replace("www.", "")
         } else {

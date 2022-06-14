@@ -137,7 +137,12 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let source_path = Path::new(&c.source_directory);
 
     CombinedLogger::init(vec![
-        TermLogger::new(LevelFilter::Info, Config::default(), TerminalMode::Mixed),
+        TermLogger::new(
+            LevelFilter::Info,
+            Config::default(),
+            TerminalMode::Mixed,
+            ColorChoice::Auto,
+        ),
         WriteLogger::new(
             LevelFilter::Error,
             Config::default(),
