@@ -14,7 +14,7 @@ log = "0.4"
 env_logger = "0.9"
 chrono = "0.4"
 simplelog = "0.12"
-tokio = { version = "1.17", features = ["full"] }
+tokio = { version = "1.20", features = ["full"] }
 walkdir = "2.3"
 horrorshow = "0.8"
 tree_magic_mini = "3.0.3"
